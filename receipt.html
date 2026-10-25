@@ -1,0 +1,50 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#fbf9f4">
+    <title>Your e-ticket Â· Smart Tourist Guide System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <header class="site-header no-print">
+      <a class="brand" href="/" aria-label="Smart Tourist Guide System home"><span class="brand-mark">ST</span><span class="brand-name">Smart Tourist Guide <span>System</span></span></a>
+      <nav class="main-nav" aria-label="Main navigation"><a href="/">Explore</a><a href="/about">About</a><a href="/contact">Contact</a></nav>
+      <div class="header-actions">{{HEADER_ACTIONS}}</div>
+    </header>
+    <main class="receipt-page">
+      <div class="confetti" aria-hidden="true"><span>âœ³</span><span>âœ¦</span><span>âœ³</span><span>âœ¦</span><span>âœ³</span><span>âœ¦</span><span>âœ³</span><span>âœ¦</span></div>
+      <p class="eyebrow section-eyebrow">THE WORLD IS WAITING</p>
+      <h1 class="page-title">It's really happening.</h1>
+      {{CHECKOUT_STEPS}}
+      <p class="page-intro">{{RECEIPT_NOTICE}}</p>
+      <article class="receipt-card">
+        <div class="receipt-top"><div><span class="eyebrow section-eyebrow">YOUR ROAM E-TICKET</span><h2>{{RECEIPT_DESTINATION}}</h2></div><span class="receipt-status">{{RECEIPT_STATUS}}</span></div>
+        <div class="receipt-grid">
+          <div><span>BOOKING ID</span><strong>BID-#{{BOOKING_ID}}</strong></div>
+          <div><span>TRANSACTION ID</span><strong>{{TRANSACTION_ID}}</strong></div>
+          <div><span>TRAVELER</span><strong>{{TOURIST_NAME}}</strong></div>
+          <div><span>EMAIL</span><strong>{{TOURIST_EMAIL}}</strong></div>
+          <div><span>EXPERIENCE</span><strong>{{BOOKING_SERVICE}}</strong></div>
+          <div><span>DATE</span><strong>{{BOOKING_DATE}}</strong></div>
+          <div><span>GUESTS / QUANTITY</span><strong>{{BOOKING_QUANTITY}}</strong></div>
+          <div><span>PAYMENT</span><strong>{{PAYMENT_MODE}}</strong></div>
+        </div>
+        <div class="receipt-total"><span>Total {{PAYMENT_DISCLAIMER}}</span><strong>â‚¹{{BOOKING_TOTAL}}</strong></div>
+        <div class="receipt-verification"><img src="{{VERIFICATION_QR}}" alt="QR code linking to this ticket's verification page"><p>Scan to verify this ticket<br><small>This is a demo reservation, not a provider-confirmed ticket.</small></p></div>
+        <p class="receipt-note">{{PAYMENT_NOTICE}}</p>
+      </article>
+      <div class="receipt-actions no-print"><a class="button button-dark" href="/trips">View my trips</a></div>
+      <p class="modal-note no-print">To print or save this ticket as PDF, use your browser's Print command (Ctrl+P / âŒ˜P). The frontend deliberately contains HTML and CSS only.</p>
+    </main>
+    <footer class="site-footer no-print"><a class="brand footer-brand" href="/"><span class="brand-mark">ST</span><span class="brand-name">Smart Tourist Guide <span>System</span></span></a><nav class="footer-nav" aria-label="Footer navigation"><a href="/about">About</a><a href="/contact">Contact</a></nav><p>This sample ticket is not proof of payment to a real provider.</p><span>Â© Smart Tourist Guide System Â· Created by Shruti Tayade &amp; Priyanka Suryawanshi</span></footer>
+      <script src="/config.js"></script>
+    <script src="/app.js" defer></script>
+  </body>
+</html>
+
+

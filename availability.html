@@ -1,0 +1,58 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Check availability Â· Smart Tourist Guide System</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Smart Tourist Guide System home"
+        ><span class="brand-mark">ST</span
+        ><span class="brand-name"
+          >Smart Tourist Guide <span>System</span></span
+        ></a
+      >
+      <nav class="main-nav" aria-label="Main navigation">
+        <a href="/">Explore</a><a href="/about">About</a
+        ><a href="/contact">Contact</a>
+      </nav>
+      <div class="header-actions">{{HEADER_ACTIONS}}</div>
+    </header>
+    <main class="section-wrap checkout-page">
+      <a class="underlined-link" href="/destinations/{{DESTINATION_ID}}"
+        >â† Back to {{DESTINATION_NAME}}</a
+      >
+      <p class="eyebrow section-eyebrow">A LITTLE PLANNING GOES A LONG WAY</p>
+      <h1 class="page-title">{{AVAILABILITY_HEADING}}</h1>
+      {{NOTICE}}
+      <section class="checkout-summary">
+        <h2>{{SERVICE_NAME}}</h2>
+        <p>{{DESTINATION_NAME}} Â· {{DATE_SUMMARY}}</p>
+        <p>{{CAPACITY_SUMMARY}}</p>
+        <p class="checkout-total">{{PRICE_SUMMARY}}</p>
+      </section>
+      {{BOOKING_FORM}} {{CART_FORM}}
+      <h2 class="subheading">A few more nearby ideas</h2>
+      <div class="alternatives-grid">{{ALTERNATIVES}}</div>
+    </main>
+    <footer class="site-footer">
+      <a class="brand footer-brand" href="/"
+        ><span class="brand-mark">ST</span
+        ><span class="brand-name"
+          >Smart Tourist Guide <span>System</span></span
+        ></a
+      >
+      <nav class="footer-nav" aria-label="Footer navigation">
+        <a href="/about">About</a><a href="/contact">Contact</a>
+      </nav>
+      <p>Provider availability is a sample inventory for demonstration.</p>
+      <span>Â© Smart Tourist Guide System Â· Created by Shruti Tayade &amp; Priyanka Suryawanshi</span>
+    </footer>
+      <script src="/config.js"></script>
+    <script src="/app.js" defer></script>
+  </body>
+</html>
+
+

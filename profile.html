@@ -1,0 +1,61 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#fbf9f4">
+    <title>Your profile Â· Smart Tourist Guide System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Smart Tourist Guide System home"><span class="brand-mark">ST</span><span class="brand-name">Smart Tourist Guide <span>System</span></span></a>
+      <nav class="main-nav" aria-label="Main navigation"><a href="/">Explore</a><a href="/about">About</a><a href="/contact">Contact</a></nav>
+      <div class="header-actions">{{HEADER_ACTIONS}}</div>
+    </header>
+    <main class="section-wrap profile-page">
+      <span class="eyebrow section-eyebrow">YOUR ACCOUNT</span>
+      <h1 class="page-title">Your profile.</h1>
+      <p class="page-intro">Keep your contact details up to date for your trip plans and booking receipts.</p>
+      <nav class="account-nav" aria-label="Account navigation">
+        <a class="is-active" href="/profile">Profile</a>
+        <a href="/trips">My trips</a>
+        <a href="/cart">Trip cart</a>
+        {{MANAGEMENT_LINK}}
+      </nav>
+      {{NOTICE}}
+      <section class="profile-card">
+        <div class="profile-summary">
+          <div class="profile-avatar" aria-hidden="true">{{PROFILE_INITIALS}}</div>
+          <div><p class="eyebrow section-eyebrow">SIGNED IN AS {{PROFILE_ROLE}}</p><h2>{{PROFILE_NAME}}</h2><p>Member since {{PROFILE_CREATED}}</p></div>
+        </div>
+        <div class="profile-stats">
+          <div><strong>{{PROFILE_TRIP_COUNT}}</strong><span>trip plans</span></div>
+          <div><strong>{{PROFILE_STATUS}}</strong><span>account status</span></div>
+        </div>
+      </section>
+      <section class="profile-form-card">
+        <h2>Personal information</h2>
+        <p class="modal-note">These details are used to identify your account and appear on your booking receipts.</p>
+        <form action="/profile" method="post">
+          <label class="form-label" for="profile-name">Full name</label>
+          <input class="form-input" id="profile-name" name="name" autocomplete="name" minlength="2" maxlength="100" value="{{PROFILE_NAME_VALUE}}" required>
+          <label class="form-label" for="profile-email">Email address</label>
+          <input class="form-input" id="profile-email" name="email" type="email" autocomplete="email" maxlength="254" value="{{PROFILE_EMAIL}}" required>
+          <label class="form-label" for="profile-phone">Phone number</label>
+          <input class="form-input" id="profile-phone" name="phone" type="tel" autocomplete="tel" minlength="7" maxlength="30" value="{{PROFILE_PHONE}}" required>
+          <button class="button button-dark form-submit" type="submit">Save profile</button>
+        </form>
+      </section>
+      <p class="demo-warning">Payment data is never stored here. This application currently demonstrates payment results only; no payment provider is connected.</p>
+    </main>
+    <footer class="site-footer"><a class="brand footer-brand" href="/"><span class="brand-mark">ST</span><span class="brand-name">Smart Tourist Guide <span>System</span></span></a><nav class="footer-nav" aria-label="Footer navigation"><a href="/about">About</a><a href="/contact">Contact</a></nav><p>Your account details stay in your local demo database.</p><span>Â© Smart Tourist Guide System Â· Created by Shruti Tayade &amp; Priyanka Suryawanshi</span></footer>
+      <script src="/config.js"></script>
+    <script src="/app.js" defer></script>
+  </body>
+</html>
+
+

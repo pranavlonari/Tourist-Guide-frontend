@@ -1,0 +1,104 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#fbf9f4">
+    <meta name="description" content="Discover destinations, stays, attractions, and restaurants with Smart Tourist Guide System.">
+    <title>Smart Tourist Guide System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Smart Tourist Guide System home"><span class="brand-mark">ST</span><span class="brand-name">Smart Tourist Guide <span>System</span></span></a>
+      <nav class="main-nav" aria-label="Main navigation">
+        <a href="#destinations">Explore</a>
+        <a href="#how-it-works">How it works</a>
+        <a href="/about">About</a>
+        <a href="/contact">Contact</a>
+      </nav>
+      <div class="header-actions">{{HEADER_ACTIONS}}</div>
+    </header>
+    <main>
+      <section class="hero">
+        <img class="hero-image" src="https://images.unsplash.com/photo-1512343879784-a960bf40e7f2?auto=format&fit=crop&w=2200&q=85" alt="A quiet beach framed by tropical palms">
+        <div class="hero-shade"></div>
+        <div class="hero-content">
+          <span class="eyebrow hero-eyebrow"><span class="eyebrow-dot"></span> YOUR NEXT CHAPTER STARTS HERE</span>
+          <h1>Find your<br>somewhere.</h1>
+          <p>Less scrolling, more seeing. Discover places that feel like you.</p>
+          <a class="button button-light hero-cta" href="#destinations">Find your escape <span aria-hidden="true">â†—</span></a>
+        </div>
+        <div class="hero-caption"><span class="caption-line"></span><span>Somewhere on the coast Â· Somewhere in your dreams</span></div>
+        <div class="hero-index"><span>01</span> <span class="index-divider"></span> 05</div>
+      </section>
+      <section class="intro section-wrap" id="how-it-works">
+        <div>
+          <span class="eyebrow section-eyebrow">A LITTLE LESS ORDINARY</span>
+          <h2>Good trips begin<br>with a <em>feeling.</em></h2>
+        </div>
+        <div class="intro-copy">
+          <p>That place you've been saving for later? Let's make it real. Find your destination, discover the best local stays and spots, and bring the whole trip together in one place.</p>
+          <a class="underlined-link" href="#destinations">Get a little lost <span aria-hidden="true">â†—</span></a>
+        </div>
+      </section>
+      <section class="destinations-section" id="destinations">
+        <div class="section-wrap">
+          <div class="section-heading">
+            <div>
+              <span class="eyebrow section-eyebrow">THE WORLD, AT YOUR PACE</span>
+              <h2>Places to <em>feel something.</em></h2>
+            </div>
+            <p class="section-aside">A few good places to<br>start your story.</p>
+          </div>
+          <form class="search-form" action="/" method="get">
+            <label class="search-field">
+              <span class="search-icon" aria-hidden="true">âŒ•</span>
+              <span class="visually-hidden">Search destinations</span>
+              <input name="q" type="search" value="{{SEARCH_QUERY}}" placeholder="Try â€œmountainsâ€, â€œMaharashtraâ€â€¦">
+            </label>
+            <label class="filter-field">
+              <span class="filter-label">STATE / LOCATION</span>
+              <select name="state">{{STATE_OPTIONS}}</select>
+            </label>
+            <label class="filter-field">
+              <span class="filter-label">CATEGORY</span>
+              <select name="category">
+                {{CATEGORY_OPTIONS}}
+              </select>
+            </label>
+            <label class="filter-field fee-filter">
+              <span class="filter-label">MAX ENTRY FEE <strong>â‚¹{{MAX_FEE_LABEL}}</strong></span>
+              <input name="maxFee" type="range" min="0" max="2000" step="100" value="{{MAX_FEE}}" aria-label="Maximum entry fee in rupees">
+            </label>
+            <label class="filter-field">
+              <span class="filter-label">SORT BY</span>
+              <select name="sort">{{SORT_OPTIONS}}</select>
+            </label>
+            <button class="button button-dark search-button" type="submit">Find a place <span aria-hidden="true">â†—</span></button>
+          </form>
+          <nav class="category-pills" aria-label="Explore destination categories">
+            {{CATEGORY_PILLS}}
+          </nav>
+          {{NOTICE}}
+          <div class="results-meta"><p>{{RESULTS_COUNT}}</p><a class="text-button clear-search" href="/">Clear filters</a></div>
+          <div class="destination-grid">{{DESTINATION_CARDS}}</div>
+          {{EMPTY_STATE}}
+        </div>
+      </section>
+      <section class="closing-note">
+        <span class="closing-spark" aria-hidden="true">âœ³</span>
+        <p>Go on. The world is waiting.</p>
+        <a class="underlined-link" href="#destinations">Let's find your somewhere <span aria-hidden="true">â†—</span></a>
+      </section>
+    </main>
+    <footer class="site-footer"><a class="brand footer-brand" href="/"><span class="brand-mark">ST</span><span class="brand-name">Smart Tourist Guide <span>System</span></span></a><nav class="footer-nav" aria-label="Footer navigation"><a href="/about">About</a><a href="/contact">Contact</a></nav><p>Made for the places that stay with you.</p><span>Â© Smart Tourist Guide System Â· Created by Shruti Tayade &amp; Priyanka Suryawanshi</span></footer>
+      <script src="/config.js"></script>
+    <script src="/app.js" defer></script>
+  </body>
+</html>
+
+

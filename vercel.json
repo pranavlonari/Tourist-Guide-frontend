@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/", "destination": "/index.html" },
+    { "source": "/about", "destination": "/about.html" },
+    { "source": "/account", "destination": "/account.html" },
+    { "source": "/contact", "destination": "/contact.html" },
+    { "source": "/destination", "destination": "/destination.html" },
+    { "source": "/admin/login", "destination": "/admin-login.html" }
+  ]
+}
