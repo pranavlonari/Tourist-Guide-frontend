@@ -164,9 +164,17 @@ textarea.form-input { min-height: 100px; resize: vertical; }
 .checkout-steps li.is-complete::before { content: "✓"; border-color: var(--olive); background: var(--olive); color: white; }
 .trips-page { min-height: 62vh; }
 .trips-page .page-title { margin-bottom: 24px; }
-.booking-item { padding: 18px 0; border-top: 1px solid var(--line); }
-.booking-item strong, .booking-item span { display: block; font-size: 12px; }
-.booking-item span { margin-top: 6px; color: var(--muted); font-size: 10px; }
+.booking-item { padding: 20px 0; border-top: 1px solid var(--line); }
+.booking-item strong { display: block; font-size: 13px; font-weight: 600; color: var(--ink); }
+.booking-item span { margin-top: 6px; color: var(--muted); font-size: 11px; }
+.booking-item .trip-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 6px; }
+.status-pill { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 9px; font-weight: 600; letter-spacing: .5px; text-transform: uppercase; }
+.status-confirmed { background: #e9eee3; color: #4b5b3f; border: 1px solid #c8d8bd; }
+.status-pending { background: #fdf5e2; color: #8c6b16; border: 1px solid #edd9a3; }
+.status-cancelled { background: #fbeae8; color: #9c3b31; border: 1px solid #ecc4bf; }
+.trip-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 12px; }
+.trip-actions .button { min-height: 34px; padding: 0 14px; font-size: 11px; }
+.trip-actions .cancel-booking { margin: 0; color: var(--rust); font-size: 11px; }
 .cancel-booking { margin-top: 7px; color: var(--rust); }
 .trips-page > .modal-note { max-width: 560px; margin: 26px 0; line-height: 1.8; }
 .trips-page > .underlined-link { margin-top: 6px; }

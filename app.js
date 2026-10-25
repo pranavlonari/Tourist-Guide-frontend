@@ -96,7 +96,7 @@ function renderHeader(user) {
   if (!target) return;
   const cart = getLocalCart();
   const cartBadge = cart.length ? ` (${cart.length})` : "";
-  const cartLink = `<a class="header-link" href="/cart.html">Cart${cartBadge}</a>`;
+  const cartLink = `<a class="header-link" href="/cart">Cart${cartBadge}</a>`;
 
   if (user) {
     const firstName = escapeHtml(String(user.name || "Profile").trim().split(/\s+/)[0]);
@@ -107,7 +107,7 @@ function renderHeader(user) {
       ${cartLink}
       ${management}
       <a class="text-button" href="/profile.html">Hi, ${firstName}</a>
-      <a class="text-button header-secondary" href="/bookings.html">My trips</a>
+      <a class="text-button header-secondary" href="/trips">My trips</a>
       <button class="button button-dark" id="logout-button" type="button">Sign out</button>
     `;
     document.querySelector("#logout-button")?.addEventListener("click", async () => {
@@ -121,6 +121,7 @@ function renderHeader(user) {
   } else {
     target.innerHTML = `
       ${cartLink}
+      <a class="text-button header-secondary" href="/trips">My trips</a>
       <a class="button button-dark" href="/account.html">Sign in</a>
     `;
   }
@@ -532,14 +533,72 @@ function renderCart(user) {
 }
 
 // ----------------------------------------------------
+function formatDateRange(bookingDate, checkOut) {
+  if (!bookingDate) return "";
+  try {
+    const d1 = new Date(`${bookingDate}T12:00:00`).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+    if (!checkOut) return d1;
+    const d2 = new Date(`${checkOut}T12:00:00`).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+    return `${d1} → ${d2}`;
+  } catch {
+    return checkOut ? `${bookingDate} → ${checkOut}` : bookingDate;
+  }
+}
+
+// ----------------------------------------------------
 // 4. PAYMENT PAGE
 // ----------------------------------------------------
-function renderPayment(user) {
+async function renderPayment(user) {
   const container = document.querySelector("#payment-details-container");
   if (!container) return;
 
-  const rawItem = sessionStorage.getItem("active_booking_item");
-  const item = rawItem ? JSON.parse(rawItem) : null;
+  const urlParams = new URLSearchParams(window.location.search);
+  const existingBookingId = urlParams.get("bookingId");
+
+  let item = null;
+  let isExistingPendingBooking = false;
+  let total = 0;
+
+  // Check if paying for an existing pending booking
+  if (existingBookingId && user) {
+    try {
+      const data = await api(`/bookings/${encodeURIComponent(existingBookingId)}`);
+      const b = data.booking;
+      if (b) {
+        if (b.status === "confirmed") {
+          container.innerHTML = `
+            <div class="page-notice">
+              This trip is already confirmed! <a class="underlined-link" href="/receipt.html?bookingId=${b.id}">View your e-ticket</a> or <a class="underlined-link" href="/trips">View your trips</a>.
+            </div>
+          `;
+          return;
+        }
+        item = {
+          destinationId: b.destinationId,
+          destinationName: b.destinationName,
+          serviceId: b.serviceId,
+          serviceName: b.serviceName,
+          serviceType: b.serviceType,
+          unitPrice: b.unitPrice,
+          bookingDate: b.bookingDate,
+          checkOut: b.checkOut,
+          quantity: b.quantity,
+          guestCount: b.guestCount,
+          id: `pending_${b.id}`,
+        };
+        total = Number(b.totalAmount || 0);
+        isExistingPendingBooking = true;
+      }
+    } catch (err) {
+      console.warn("Could not load existing booking:", err.message);
+    }
+  }
+
+  // If not existing booking, load from cart active item
+  if (!item) {
+    const rawItem = sessionStorage.getItem("active_booking_item");
+    item = rawItem ? JSON.parse(rawItem) : null;
+  }
 
   if (!item) {
     container.innerHTML = `
@@ -548,10 +607,12 @@ function renderPayment(user) {
     return;
   }
 
-  const nights = item.serviceType === "hotel" && item.checkOut
-    ? Math.max(1, Math.round((Date.parse(`${item.checkOut}T00:00:00Z`) - Date.parse(`${item.bookingDate}T00:00:00Z`)) / 86400000))
-    : 1;
-  const total = Number(item.unitPrice || 0) * Number(item.quantity || 1) * nights;
+  if (!isExistingPendingBooking) {
+    const nights = item.serviceType === "hotel" && item.checkOut
+      ? Math.max(1, Math.round((Date.parse(`${item.checkOut}T00:00:00Z`) - Date.parse(`${item.bookingDate}T00:00:00Z`)) / 86400000))
+      : 1;
+    total = Number(item.unitPrice || 0) * Number(item.quantity || 1) * nights;
+  }
 
   container.innerHTML = `
     <section class="checkout-summary">
@@ -565,7 +626,7 @@ function renderPayment(user) {
       <div>
         <span class="eyebrow section-eyebrow">BOOKING TRAVELER</span>
         <strong>${escapeHtml(user ? user.name : "Guest Traveler")}</strong>
-        <span>${escapeHtml(user ? user.email : "Sign in to record in your account history")}</span>
+        <span>${escapeHtml(user ? user.email : "Sign in to save this trip directly to your account history")}</span>
       </div>
       <a class="underlined-link" href="${user ? "/profile.html" : "/account.html"}">${user ? "View profile" : "Sign in first"}</a>
     </section>
@@ -588,103 +649,234 @@ function renderPayment(user) {
       </fieldset>
 
       <p class="demo-warning">DEMO CHECKOUT · This application simulates the booking process. No actual charges are made.</p>
-      <button class="button button-dark form-submit" type="submit">Complete Booking · ${formatCurrency(total)} <span aria-hidden="true">↗</span></button>
+      <button class="button button-dark form-submit" id="checkout-submit-btn" type="submit">Complete Booking & Confirm · ${formatCurrency(total)} <span aria-hidden="true">↗</span></button>
     </form>
   `;
 
   document.querySelector("#checkout-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const mode = document.querySelector('input[name="mode"]:checked')?.value || "upi";
-    const transactionId = "TXN" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
-
-    // If logged in, create backend booking
-    let bookingId = Math.floor(100000 + Math.random() * 900000);
-    if (user) {
-      try {
-        const res = await api("/bookings", {
-          method: "POST",
-          body: JSON.stringify({
-            destinationId: item.destinationId,
-            serviceId: item.serviceId,
-            serviceType: item.serviceType,
-            bookingDate: item.bookingDate,
-            checkOut: item.checkOut,
-            quantity: item.quantity,
-            guestCount: item.guestCount,
-          }),
-        });
-        if (res.booking && res.booking.id) {
-          bookingId = res.booking.id;
-        }
-      } catch (err) {
-        console.warn("Backend booking API notice:", err.message);
-      }
+    const submitBtn = document.querySelector("#checkout-submit-btn");
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Confirming your reservation...";
     }
 
-    // Save receipt details
+    const mode = document.querySelector('input[name="mode"]:checked')?.value || "upi";
+    let bookingId = isExistingPendingBooking ? Number(existingBookingId) : Math.floor(100000 + Math.random() * 900000);
+    let transactionId = "TXN" + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
+    let verificationToken = "";
+
+    // If logged in, create backend booking AND complete payment
+    if (user) {
+      try {
+        if (!isExistingPendingBooking) {
+          const res = await api("/bookings", {
+            method: "POST",
+            body: JSON.stringify({
+              destinationId: item.destinationId,
+              serviceId: item.serviceId,
+              serviceType: item.serviceType,
+              bookingDate: item.bookingDate,
+              checkOut: item.checkOut,
+              quantity: item.quantity,
+              guestCount: item.guestCount,
+            }),
+          });
+          if (res.booking && res.booking.id) {
+            bookingId = res.booking.id;
+            verificationToken = res.booking.verificationToken || "";
+          }
+        }
+
+        // Process payment to transition status from pending -> confirmed
+        const payRes = await api(`/bookings/${bookingId}/payments`, {
+          method: "POST",
+          body: JSON.stringify({
+            mode: mode,
+            bankName: "State Bank of India",
+            simulateFailure: false,
+          }),
+        });
+
+        if (payRes.payment) {
+          transactionId = payRes.payment.transactionId || transactionId;
+          if (payRes.payment.verificationToken) {
+            verificationToken = payRes.payment.verificationToken;
+          }
+        }
+      } catch (err) {
+        console.warn("Backend booking API note:", err.message);
+      }
+    } else {
+      // Guest booking: store in localStorage
+      const guestBookings = JSON.parse(localStorage.getItem("roam_guest_bookings") || "[]");
+      guestBookings.unshift({
+        id: bookingId,
+        destinationName: item.destinationName,
+        serviceName: item.serviceName,
+        serviceType: item.serviceType,
+        bookingDate: item.bookingDate,
+        checkOut: item.checkOut,
+        quantity: item.quantity,
+        guestCount: item.guestCount,
+        totalAmount: total,
+        status: "confirmed",
+        transactionId: transactionId,
+        paymentMode: mode.toUpperCase(),
+        paymentStatus: mode === "cash_on_arrival" ? "cash_due" : "success"
+      });
+      localStorage.setItem("roam_guest_bookings", JSON.stringify(guestBookings));
+    }
+
+    // Save receipt details to sessionStorage
     const receipt = {
       bookingId,
       transactionId,
+      verificationToken,
       touristName: user ? user.name : "Guest Traveler",
       touristEmail: user ? user.email : "guest@touristguide.demo",
       destinationName: item.destinationName,
       serviceName: item.serviceName,
       bookingDate: item.bookingDate,
+      checkOut: item.checkOut,
       quantity: item.quantity,
+      guestCount: item.guestCount,
       paymentMode: mode.toUpperCase(),
       totalAmount: total,
+      status: "confirmed",
     };
     sessionStorage.setItem("last_receipt", JSON.stringify(receipt));
 
     // Remove booked item from cart
-    removeFromLocalCart(item.id);
-    renderHeader(user);
+    if (!isExistingPendingBooking) {
+      removeFromLocalCart(item.id);
+      sessionStorage.removeItem("active_booking_item");
+      renderHeader(user);
+    }
 
-    window.location.href = "/receipt.html";
+    window.location.href = `/receipt.html?bookingId=${bookingId}`;
   });
 }
 
 // ----------------------------------------------------
 // 5. RECEIPT PAGE
 // ----------------------------------------------------
-function renderReceipt() {
+async function renderReceipt() {
   const container = document.querySelector("#receipt-container");
   if (!container) return;
 
-  const raw = sessionStorage.getItem("last_receipt");
-  const r = raw ? JSON.parse(raw) : null;
+  const urlParams = new URLSearchParams(window.location.search);
+  const bookingIdFromUrl = urlParams.get("bookingId");
+
+  let r = null;
+
+  // Try fetching from backend if bookingId provided in URL
+  if (bookingIdFromUrl) {
+    try {
+      const data = await api(`/bookings/${encodeURIComponent(bookingIdFromUrl)}`);
+      if (data && data.booking) {
+        const b = data.booking;
+        r = {
+          bookingId: b.id,
+          transactionId: b.transactionId || `TXN${b.id}DEMO`,
+          verificationToken: b.verificationToken || "",
+          touristName: b.touristName || "Traveler",
+          touristEmail: b.touristEmail || "traveler@touristguide.demo",
+          destinationName: b.destinationName,
+          serviceName: b.serviceName,
+          bookingDate: formatDateRange(b.bookingDate, b.checkOut),
+          quantity: `${b.quantity} unit(s) · ${b.guestCount || 1} guest(s)`,
+          paymentMode: (b.paymentMode || "UPI").toUpperCase(),
+          totalAmount: b.totalAmount,
+          status: b.status || "confirmed",
+        };
+      }
+    } catch {
+      // Fallback to local storage
+    }
+  }
+
+  // Fallback to sessionStorage last_receipt
+  if (!r) {
+    const raw = sessionStorage.getItem("last_receipt");
+    if (raw) {
+      try {
+        r = JSON.parse(raw);
+        if (bookingIdFromUrl && String(r.bookingId) !== String(bookingIdFromUrl)) {
+          r = null;
+        }
+      } catch {
+        r = null;
+      }
+    }
+  }
+
+  // Fallback to guest bookings
+  if (!r && bookingIdFromUrl) {
+    const guestBookings = JSON.parse(localStorage.getItem("roam_guest_bookings") || "[]");
+    const found = guestBookings.find((g) => String(g.id) === String(bookingIdFromUrl));
+    if (found) {
+      r = {
+        bookingId: found.id,
+        transactionId: found.transactionId,
+        verificationToken: "",
+        touristName: "Guest Traveler",
+        touristEmail: "guest@touristguide.demo",
+        destinationName: found.destinationName,
+        serviceName: found.serviceName,
+        bookingDate: formatDateRange(found.bookingDate, found.checkOut),
+        quantity: `${found.quantity} unit(s) · ${found.guestCount || 1} guest(s)`,
+        paymentMode: found.paymentMode || "UPI",
+        totalAmount: found.totalAmount,
+        status: found.status || "confirmed",
+      };
+    }
+  }
 
   if (!r) {
     container.innerHTML = `
-      <p class="page-notice">No recent booking confirmation found. <a class="underlined-link" href="/">Explore destinations</a></p>
+      <p class="page-notice">No booking confirmation found for this request. <a class="underlined-link" href="/trips">View your trips</a> or <a class="underlined-link" href="/">Explore destinations</a>.</p>
     `;
     return;
   }
+
+  const verifyUrl = r.verificationToken
+    ? `${window.location.origin}/verify.html?token=${encodeURIComponent(r.verificationToken)}`
+    : `${window.location.origin}/verify.html?bookingId=${encodeURIComponent(r.bookingId)}`;
+
+  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(verifyUrl)}`;
 
   container.innerHTML = `
     <article class="receipt-card">
       <div class="receipt-top">
         <div>
-          <span class="eyebrow section-eyebrow">YOUR ROAM E-TICKET</span>
+          <span class="eyebrow section-eyebrow">YOUR SMART TOURIST GUIDE E-TICKET</span>
           <h2>${escapeHtml(r.destinationName)}</h2>
         </div>
-        <span class="receipt-status">CONFIRMED</span>
+        <span class="status-pill status-${r.status ? r.status.toLowerCase() : "confirmed"}">${escapeHtml((r.status || "CONFIRMED").toUpperCase())}</span>
       </div>
       <div class="receipt-grid">
         <div><span>BOOKING ID</span><strong>BID-#${escapeHtml(r.bookingId)}</strong></div>
-        <div><span>TRANSACTION ID</span><strong>${escapeHtml(r.transactionId)}</strong></div>
+        <div><span>TRANSACTION ID</span><strong>${escapeHtml(r.transactionId || "N/A")}</strong></div>
         <div><span>TRAVELER</span><strong>${escapeHtml(r.touristName)}</strong></div>
         <div><span>EMAIL</span><strong>${escapeHtml(r.touristEmail)}</strong></div>
         <div><span>EXPERIENCE</span><strong>${escapeHtml(r.serviceName)}</strong></div>
         <div><span>DATE</span><strong>${escapeHtml(r.bookingDate)}</strong></div>
         <div><span>GUESTS / QUANTITY</span><strong>${escapeHtml(r.quantity)}</strong></div>
-        <div><span>PAYMENT</span><strong>${escapeHtml(r.paymentMode)}</strong></div>
+        <div><span>PAYMENT MODE</span><strong>${escapeHtml(r.paymentMode || "UPI")}</strong></div>
       </div>
       <div class="receipt-total">
         <span>Total Paid (Simulated)</span>
         <strong>${formatCurrency(r.totalAmount)}</strong>
       </div>
-      <p class="receipt-note">This is a simulated demo e-ticket for testing and academic demonstration. No real charges were processed.</p>
+      <div class="receipt-verification">
+        <img src="${qrImageUrl}" alt="Verification QR Code">
+        <div>
+          <strong>Verified Demo Ticket</strong>
+          <p>Scan to verify booking validity or <a class="underlined-link" href="${verifyUrl}" target="_blank">verify online</a>.</p>
+          <small class="receipt-note">Demonstration ticket only. Validated in the Smart Tourist Guide System database.</small>
+        </div>
+      </div>
     </article>
   `;
 }
@@ -694,25 +886,55 @@ function renderReceipt() {
 // ----------------------------------------------------
 async function renderBookings(user) {
   const container = document.querySelector("#trips-container");
+  const noticeContainer = document.querySelector("#trips-notice");
   if (!container) return;
 
-  if (!user) {
-    container.innerHTML = `
-      <section class="empty-state">
-        <span aria-hidden="true">✻</span>
-        <h2>Sign in to view your trips</h2>
-        <p>Sign in with your traveler account to view confirmed bookings and trip receipts.</p>
-        <a class="button button-dark" href="/account.html">Sign in now</a>
-      </section>
-    `;
-    return;
+  let serverBookings = [];
+  if (user) {
+    try {
+      const data = await api("/bookings");
+      serverBookings = data.bookings || [];
+    } catch (err) {
+      console.warn("Unable to fetch server bookings:", err.message);
+    }
   }
 
-  try {
-    const data = await api("/bookings");
-    const bookings = data.bookings || [];
+  const guestBookings = JSON.parse(localStorage.getItem("roam_guest_bookings") || "[]");
+  const allBookings = [...serverBookings];
 
-    if (!bookings.length) {
+  // Merge guest bookings not already present in server bookings
+  for (const gb of guestBookings) {
+    if (!allBookings.some((b) => String(b.id) === String(gb.id))) {
+      allBookings.push(gb);
+    }
+  }
+
+  if (noticeContainer) {
+    if (!user && guestBookings.length) {
+      noticeContainer.innerHTML = `
+        <div class="page-notice">
+          Showing guest bookings placed on this browser. <a class="underlined-link" href="/account.html">Sign in or register</a> to save all your trips to your account permanently.
+        </div>
+      `;
+    } else {
+      noticeContainer.innerHTML = "";
+    }
+  }
+
+  if (!allBookings.length) {
+    if (!user) {
+      container.innerHTML = `
+        <section class="empty-state">
+          <span aria-hidden="true">✻</span>
+          <h2>Sign in to view your trips</h2>
+          <p>Sign in with your traveler account to view confirmed bookings and trip receipts, or plan your next adventure.</p>
+          <div style="display:flex; justify-content:center; gap:12px; margin-top:16px;">
+            <a class="button button-dark" href="/account.html">Sign in now</a>
+            <a class="button button-light" href="/">Explore destinations</a>
+          </div>
+        </section>
+      `;
+    } else {
       container.innerHTML = `
         <section class="empty-state">
           <span aria-hidden="true">✳</span>
@@ -721,19 +943,66 @@ async function renderBookings(user) {
           <a class="button button-dark" href="/">Explore destinations</a>
         </section>
       `;
-      return;
     }
+    return;
+  }
 
-    container.innerHTML = bookings.map((b) => `
+  container.innerHTML = allBookings.map((b) => {
+    const status = (b.status || "confirmed").toLowerCase();
+    const dateRange = formatDateRange(b.bookingDate, b.checkOut);
+
+    return `
       <article class="booking-item">
         <strong>${escapeHtml(b.destinationName)} · ${escapeHtml(b.serviceName)}</strong>
-        <span>${escapeHtml(b.serviceType.toUpperCase())} · Date: ${escapeHtml(b.bookingDate || "")} · ${b.quantity} item(s) · Status: <strong>${escapeHtml(b.status || "confirmed")}</strong></span>
-        <span>Total: ${formatCurrency(b.totalAmount)} · Ref: #${b.id}</span>
+        <div class="trip-meta">
+          <span class="status-pill status-${status}">${status.toUpperCase()}</span>
+          <span>Date: <strong>${escapeHtml(dateRange)}</strong></span>
+          <span>·</span>
+          <span>${formatCurrency(b.totalAmount)}</span>
+          <span>·</span>
+          <span>${b.quantity} unit(s), ${b.guestCount || 1} guest(s)</span>
+          ${b.transactionId ? `<span>· Txn: ${escapeHtml(b.transactionId)}</span>` : `<span>· Ref: #${b.id}</span>`}
+        </div>
+        <div class="trip-actions">
+          ${status === "pending"
+            ? `
+              <a class="button button-dark" href="/payment.html?bookingId=${b.id}">Pay now & confirm ↗</a>
+              <button class="text-button cancel-booking cancel-trip-btn" data-booking-id="${b.id}" type="button">Cancel trip</button>
+            `
+            : status === "confirmed"
+              ? `
+                <a class="button button-dark" href="/receipt.html?bookingId=${b.id}">View e-ticket ↗</a>
+                <button class="text-button cancel-booking cancel-trip-btn" data-booking-id="${b.id}" type="button">Cancel trip</button>
+              `
+              : `<span class="cart-unavailable">Trip cancelled</span>`
+          }
+        </div>
       </article>
-    `).join("");
-  } catch (err) {
-    container.innerHTML = `<p class="page-notice" role="alert">Unable to load trips: ${escapeHtml(err.message)}</p>`;
-  }
+    `;
+  }).join("");
+
+  // Hook up cancel trip buttons
+  container.querySelectorAll(".cancel-trip-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const bookingId = btn.dataset.bookingId;
+      if (!confirm("Are you sure you want to cancel this trip?")) return;
+
+      try {
+        if (user) {
+          await api(`/bookings/${bookingId}`, { method: "DELETE" });
+        }
+        // Update guest bookings if stored in local storage
+        const guests = JSON.parse(localStorage.getItem("roam_guest_bookings") || "[]");
+        const updated = guests.map((g) => String(g.id) === String(bookingId) ? { ...g, status: "cancelled" } : g);
+        localStorage.setItem("roam_guest_bookings", JSON.stringify(updated));
+
+        alert("Trip cancelled successfully.");
+        renderBookings(user);
+      } catch (err) {
+        alert("Unable to cancel trip: " + err.message);
+      }
+    });
+  });
 }
 
 // ----------------------------------------------------
@@ -1476,6 +1745,50 @@ async function renderAdminDashboard(user) {
 }
 
 // ----------------------------------------------------
+// 12. VERIFY PAGE
+// ----------------------------------------------------
+async function renderVerify() {
+  const container = document.querySelector("#verify-details");
+  const messageEl = document.querySelector("#verify-message");
+  if (!container) return;
+
+  const urlParams = new URLSearchParams(window.location.search);
+  let token = urlParams.get("token");
+  if (!token) {
+    const match = window.location.pathname.match(/\/verify\/([a-f0-9]{48})/);
+    if (match) token = match[1];
+  }
+
+  if (!token) {
+    if (messageEl) messageEl.textContent = "Please provide a valid ticket verification token.";
+    container.innerHTML = `<p class="modal-note">No ticket token provided to verify. Scan the QR code on your e-ticket or check your booking confirmation.</p>`;
+    return;
+  }
+
+  try {
+    const data = await api(`/verify/${encodeURIComponent(token)}`);
+    const b = data.booking;
+    if (messageEl) messageEl.textContent = "Smart Tourist Guide System Verified Reservation";
+    container.innerHTML = `
+      <div style="display: grid; gap: 8px;">
+        <span class="status-pill status-confirmed">VERIFIED RESERVATION</span>
+        <h2>${escapeHtml(b.destinationName)} · ${escapeHtml(b.serviceName)}</h2>
+        <p><strong>Booking ID:</strong> BID-#${b.id}</p>
+        <p><strong>Traveler:</strong> ${escapeHtml(b.touristName || "Traveler")}</p>
+        <p><strong>Dates:</strong> ${escapeHtml(formatDateRange(b.bookingDate, b.checkOut))}</p>
+        <p><strong>Guests / Quantity:</strong> ${b.quantity} unit(s) · ${b.guestCount || 1} guest(s)</p>
+        <p><strong>Total Amount:</strong> ${formatCurrency(b.totalAmount)}</p>
+        <p><strong>Status:</strong> ${escapeHtml((b.bookingStatus || "confirmed").toUpperCase())}</p>
+        <p><strong>Transaction ID:</strong> ${escapeHtml(b.transactionId || "CONFIRMED")} (${escapeHtml(b.paymentStatus || "success")})</p>
+      </div>
+    `;
+  } catch (err) {
+    if (messageEl) messageEl.textContent = "We couldn't verify that ticket.";
+    container.innerHTML = `<p class="page-notice" role="alert">The ticket could not be verified: ${escapeHtml(err.message)}. The reservation may have been cancelled or the link is invalid.</p>`;
+  }
+}
+
+// ----------------------------------------------------
 // INITIALIZATION
 // ----------------------------------------------------
 (async () => {
@@ -1499,4 +1812,5 @@ async function renderAdminDashboard(user) {
   setupContactForm();
   setupAdminLoginForm();
   renderAdminDashboard(sessionUser);
+  renderVerify();
 })();
