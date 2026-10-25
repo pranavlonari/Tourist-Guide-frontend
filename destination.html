@@ -1,10 +1,10 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#fbf9f4">
-    <title>{{PAGE_TITLE}}</title>
+    <title>Destination Details · Smart Tourist Guide System</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
@@ -14,46 +14,22 @@
     <header class="site-header">
       <a class="brand" href="/" aria-label="Smart Tourist Guide System home"><span class="brand-mark">ST</span><span class="brand-name">Smart Tourist Guide <span>System</span></span></a>
       <nav class="main-nav" aria-label="Main navigation"><a href="/">Explore</a><a href="/about">About</a><a href="/contact">Contact</a></nav>
-      <div class="header-actions">{{HEADER_ACTIONS}}</div>
+      <div class="header-actions"><a class="button button-dark" href="/account">Sign in</a></div>
     </header>
-    <main class="page-main section-wrap">
-      <a class="underlined-link back-link" href="/">â† Back to all places</a>
-      {{NOTICE}}
-      <img class="detail-image" src="{{DESTINATION_IMAGE}}" alt="Scenery in {{DESTINATION_NAME}}">
-      <p class="detail-location">{{DESTINATION_LOCATION}} Â· {{DESTINATION_CATEGORY}}</p>
-      <h1 class="page-title">{{DESTINATION_NAME}}</h1>
-      <p class="detail-description">{{DESTINATION_DESCRIPTION}}</p>
-      <div class="detail-facts">{{DESTINATION_FACTS}}</div>
-      <nav class="destination-tabs" aria-label="Destination sections">
-        <a href="#overview">Overview & heritage</a><a href="#hotels">Hotels & stays</a><a href="#places">Places & attractions</a><a href="#restaurants">Dining</a><a href="#reviews">Reviews</a>
-      </nav>
-      <section class="overview-panel" id="overview"><h2 class="subheading">A little more about this place</h2><div class="detail-facts">{{SEASON_CLIMATE}}</div><p>{{DESTINATION_HIGHLIGHTS}}</p><p>{{DESTINATION_HERITAGE}}</p></section>
-      <div class="detail-columns">{{LISTING_GROUPS}}</div>
-      <section class="review-list" id="reviews">
-        <h2 class="subheading">Stories from the road</h2>
-        {{REVIEWS}}
-        <form class="review-form form-panel" action="/destinations/{{DESTINATION_ID}}/reviews" method="post">
-          <h3>Leave a little story of your own</h3>
-          <label class="form-label" for="review-rating">Your rating</label>
-          <select class="form-input" id="review-rating" name="rating" required>
-            <option value="">Choose a rating</option>
-            <option value="5">5 â€” Loved every minute</option>
-            <option value="4">4 â€” A lovely place</option>
-            <option value="3">3 â€” Glad I went</option>
-            <option value="2">2 â€” Not quite my place</option>
-            <option value="1">1 â€” Not for me</option>
-          </select>
-          <label class="form-label" for="review-comment">Your story</label>
-          <textarea class="form-input" id="review-comment" name="comment" maxlength="1000" required placeholder="Share a little about your time hereâ€¦"></textarea>
-          <button class="button button-dark" type="submit">Share your story <span aria-hidden="true">â†—</span></button>
-          <p class="modal-note">Sign in is required. Reviews are verified after a confirmed booking. One review per destination.</p>
-        </form>
-      </section>
+    <main class="page-main section-wrap destination-page">
+      <a class="underlined-link back-link" href="/">← Back to all places</a>
+      <div id="destination-notice"></div>
+      <div id="destination-container">
+        <p class="page-intro">Loading destination details...</p>
+      </div>
     </main>
-    <footer class="site-footer"><a class="brand footer-brand" href="/"><span class="brand-mark">ST</span><span class="brand-name">Smart Tourist Guide <span>System</span></span></a><nav class="footer-nav" aria-label="Footer navigation"><a href="/about">About</a><a href="/contact">Contact</a></nav><p>Made for the places that stay with you.</p><span>Â© Smart Tourist Guide System Â· Created by Shruti Tayade &amp; Priyanka Suryawanshi</span></footer>
-      <script src="/config.js"></script>
+    <footer class="site-footer">
+      <a class="brand footer-brand" href="/"><span class="brand-mark">ST</span><span class="brand-name">Smart Tourist Guide <span>System</span></span></a>
+      <nav class="footer-nav" aria-label="Footer navigation"><a href="/about">About</a><a href="/contact">Contact</a></nav>
+      <p>Made for the places that stay with you.</p>
+      <span>© Smart Tourist Guide System · Created by Shruti Tayade &amp; Priyanka Suryawanshi</span>
+    </footer>
+    <script src="/config.js"></script>
     <script src="/app.js" defer></script>
   </body>
 </html>
-
-

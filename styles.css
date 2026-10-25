@@ -92,6 +92,8 @@ button { color: inherit; }
 .clear-search { color: var(--rust); }
 .destination-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 22px; }
 .destination-card { min-width: 0; background: var(--paper); cursor: pointer; }
+.destination-card img { width: 100%; height: 235px; object-fit: cover; display: block; }
+.destination-hero-image { width: 100%; height: clamp(230px, 42vw, 440px); object-fit: cover; display: block; margin: 16px 0 24px; background: var(--paper-deep); }
 .card-link { display: block; height: 100%; }
 .card-image-wrap { position: relative; height: 235px; overflow: hidden; background: #dedbcf; }
 .card-image { width: 100%; height: 100%; object-fit: cover; transition: transform .5s; }

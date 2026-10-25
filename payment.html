@@ -1,10 +1,10 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#fbf9f4">
-    <title>Payment Â· Smart Tourist Guide System</title>
+    <title>Payment · Smart Tourist Guide System</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
@@ -14,49 +14,29 @@
     <header class="site-header">
       <a class="brand" href="/" aria-label="Smart Tourist Guide System home"><span class="brand-mark">ST</span><span class="brand-name">Smart Tourist Guide <span>System</span></span></a>
       <nav class="main-nav" aria-label="Main navigation"><a href="/">Explore</a><a href="/about">About</a><a href="/contact">Contact</a></nav>
-      <div class="header-actions">{{HEADER_ACTIONS}}</div>
+      <div class="header-actions"><a class="button button-dark" href="/account">Sign in</a></div>
     </header>
     <main class="section-wrap checkout-page">
       <span class="eyebrow section-eyebrow">ONE LAST LITTLE THING</span>
       <h1 class="page-title">Your next chapter.</h1>
-      {{CHECKOUT_STEPS}}
-      {{NOTICE}}
-      <section class="checkout-summary"><h2>{{BOOKING_DESTINATION}}</h2><p>{{BOOKING_SERVICE}} Â· {{BOOKING_DATE}}</p><p>{{BOOKING_QUANTITY_LABEL}}</p><p class="checkout-total">â‚¹{{BOOKING_TOTAL}}</p></section>
-      <section class="traveler-summary">
-        <div><span class="eyebrow section-eyebrow">BOOKING CONTACT</span><strong>{{TRAVELER_NAME}}</strong><span>{{TRAVELER_EMAIL}} Â· {{TRAVELER_PHONE}}</span></div>
-        <a class="underlined-link" href="/profile">Edit profile</a>
-      </section>
-      <form class="checkout-form" action="/bookings/{{BOOKING_ID}}/pay" method="post">
-        <fieldset>
-          <legend>Choose how you would like to pay</legend>
-          <label class="payment-option"><input type="radio" name="mode" value="upi" required><span><strong>UPI</strong><small>GPay, PhonePe, Paytm, BHIM â€” demo only</small></span></label>
-          <label class="payment-option"><input type="radio" name="mode" value="card"><span><strong>Credit or debit card</strong><small>Simulated checkout. Never enter or store real card details.</small></span></label>
-          <label class="payment-option"><input type="radio" name="mode" value="net_banking"><span><strong>Net banking</strong><small>Choose a bank below. No bank credentials are collected.</small></span></label>
-          <label class="payment-option"><input type="radio" name="mode" value="cash_on_arrival"><span><strong>Pay at the desk</strong><small>Booking confirmation is simulated; settle with the provider.</small></span></label>
-        </fieldset>
-        <aside class="demo-qr" aria-label="Demo QR code">
-          <img src="{{PAYMENT_QR}}" alt="QR code for the local payment demonstration">
-          <div><strong>UPI preview Â· demo only</strong><p>This QR code opens an informational page on this app. It is not a payment address and cannot collect money.</p></div>
-        </aside>
-        <label class="form-label" for="bank-name">Bank (net banking demo)</label>
-        <select class="form-input" id="bank-name" name="bankName">
-          <option value="">Choose a bank if needed</option>
-          <option>State Bank of India</option><option>HDFC Bank</option><option>ICICI Bank</option><option>Axis Bank</option><option>Kotak Mahindra Bank</option><option>Punjab National Bank</option>
-        </select>
-        <fieldset class="simulation-field">
-          <legend>Test the payment result</legend>
-          <label class="payment-option"><input type="radio" name="simulateFailure" value="false" checked><span><strong>Simulate success</strong><small>No charge is made. A sample transaction ID is generated.</small></span></label>
-          <label class="payment-option"><input type="radio" name="simulateFailure" value="true" {{FAILURE_OPTION_DISABLED}}><span><strong>Simulate failure</strong><small>Tests the retry flow. No charge is made.</small></span></label>
-        </fieldset>
-        <p class="demo-warning">DEMO CHECKOUT Â· This app is not connected to a payment gateway. Do not enter real payment credentials. No money will be collected.</p>
-        <button class="button button-dark form-submit" type="submit">{{PAYMENT_BUTTON}} Â· â‚¹{{BOOKING_TOTAL}} <span aria-hidden="true">â†—</span></button>
-      </form>
+      <ol class="checkout-steps" aria-label="Checkout progress">
+        <li class="is-complete">Cart</li>
+        <li class="is-current">Payment</li>
+        <li>Confirmation</li>
+      </ol>
+      <div id="payment-notice"></div>
+      <div id="payment-details-container">
+        <p class="page-intro">Loading booking details...</p>
+      </div>
       <a class="underlined-link" href="/trips">Back to your trips</a>
     </main>
-    <footer class="site-footer"><a class="brand footer-brand" href="/"><span class="brand-mark">ST</span><span class="brand-name">Smart Tourist Guide <span>System</span></span></a><nav class="footer-nav" aria-label="Footer navigation"><a href="/about">About</a><a href="/contact">Contact</a></nav><p>Payments are simulated for demonstration.</p><span>Â© Smart Tourist Guide System Â· Created by Shruti Tayade &amp; Priyanka Suryawanshi</span></footer>
-      <script src="/config.js"></script>
+    <footer class="site-footer">
+      <a class="brand footer-brand" href="/"><span class="brand-mark">ST</span><span class="brand-name">Smart Tourist Guide <span>System</span></span></a>
+      <nav class="footer-nav" aria-label="Footer navigation"><a href="/about">About</a><a href="/contact">Contact</a></nav>
+      <p>Payments are simulated for demonstration.</p>
+      <span>© Smart Tourist Guide System · Created by Shruti Tayade &amp; Priyanka Suryawanshi</span>
+    </footer>
+    <script src="/config.js"></script>
     <script src="/app.js" defer></script>
   </body>
 </html>
-
-

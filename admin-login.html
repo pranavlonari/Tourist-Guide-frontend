@@ -1,35 +1,42 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#fbf9f4">
-    <title>Administrator sign in Â· Smart Tourist Guide System</title>
+    <title>Administrator sign in · Smart Tourist Guide System</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="/styles.css">
   </head>
   <body>
-    <header class="site-header"><a class="brand" href="/" aria-label="Smart Tourist Guide System home"><span class="brand-mark">ST</span><span class="brand-name">Smart Tourist Guide <span>System</span></span></a><nav class="main-nav" aria-label="Main navigation"><a href="/">Explore</a><a href="/about">About</a><a href="/contact">Contact</a></nav><div class="header-actions"><a class="text-button" href="/account">Traveler sign in</a></div></header>
+    <header class="site-header">
+      <a class="brand" href="/" aria-label="Smart Tourist Guide System home"><span class="brand-mark">ST</span><span class="brand-name">Smart Tourist Guide <span>System</span></span></a>
+      <nav class="main-nav" aria-label="Main navigation"><a href="/">Explore</a><a href="/about">About</a><a href="/contact">Contact</a></nav>
+      <div class="header-actions"><a class="text-button" href="/account">Traveler sign in</a></div>
+    </header>
     <main class="account-page">
       <span class="eyebrow section-eyebrow">STAFF ACCESS</span>
       <h1>Administrator sign in.</h1>
       <p class="page-intro">Use an authorized administrator account to manage destinations, listings, bookings, reviews, and traveler accounts.</p>
-      {{NOTICE}}
-      <form action="/admin/login" method="post">
+      <div id="admin-notice"></div>
+      <form id="admin-login-form">
         <label class="form-label" for="admin-email">Administrator email</label>
         <input class="form-input" id="admin-email" name="email" type="email" autocomplete="username" maxlength="254" required>
         <label class="form-label" for="admin-password">Password</label>
         <input class="form-input" id="admin-password" name="password" type="password" autocomplete="current-password" minlength="8" maxlength="72" required>
-        <button class="button button-dark form-submit" type="submit">Sign in to dashboard <span aria-hidden="true">â†—</span></button>
+        <button class="button button-dark form-submit" type="submit">Sign in to dashboard <span aria-hidden="true">↗</span></button>
       </form>
       <p class="modal-note">Admin access is restricted to administrator and system-administrator accounts. New public registrations are traveler accounts only.</p>
     </main>
-    <footer class="site-footer"><a class="brand footer-brand" href="/"><span class="brand-mark">ST</span><span class="brand-name">Smart Tourist Guide <span>System</span></span></a><nav class="footer-nav" aria-label="Footer navigation"><a href="/about">About</a><a href="/contact">Contact</a></nav><p>Authorized staff access only.</p><span>Â© Smart Tourist Guide System Â· Created by Shruti Tayade &amp; Priyanka Suryawanshi</span></footer>
-      <script src="/config.js"></script>
+    <footer class="site-footer">
+      <a class="brand footer-brand" href="/"><span class="brand-mark">ST</span><span class="brand-name">Smart Tourist Guide <span>System</span></span></a>
+      <nav class="footer-nav" aria-label="Footer navigation"><a href="/about">About</a><a href="/contact">Contact</a></nav>
+      <p>Authorized staff access only.</p>
+      <span>© Smart Tourist Guide System · Created by Shruti Tayade &amp; Priyanka Suryawanshi</span>
+    </footer>
+    <script src="/config.js"></script>
     <script src="/app.js" defer></script>
   </body>
 </html>
-
-

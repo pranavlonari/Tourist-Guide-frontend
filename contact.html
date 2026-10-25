@@ -1,10 +1,10 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#fbf9f4">
-    <title>Contact Â· Smart Tourist Guide System</title>
+    <title>Contact · Smart Tourist Guide System</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
@@ -12,16 +12,29 @@
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href="/" aria-label="Smart Tourist Guide System home"><span class="brand-mark">ST</span><span class="brand-name">Smart Tourist Guide <span>System</span></span></a>
-      <nav class="main-nav" aria-label="Main navigation"><a href="/">Explore</a><a href="/about">About</a><a href="/contact" aria-current="page">Contact</a></nav>
-      <div class="header-actions">{{HEADER_ACTIONS}}</div>
+      <a class="brand" href="/" aria-label="Smart Tourist Guide System home">
+        <span class="brand-mark">ST</span>
+        <span class="brand-name">Smart Tourist Guide <span>System</span></span>
+      </a>
+      <nav class="main-nav" aria-label="Main navigation">
+        <a href="/">Explore</a>
+        <a href="/about">About</a>
+        <a href="/contact" aria-current="page">Contact</a>
+      </nav>
+      <div class="header-actions"><a class="button button-dark" href="/account">Sign in</a></div>
     </header>
     <main class="section-wrap info-page contact-page">
-      <div class="contact-intro"><span class="eyebrow section-eyebrow">WE'D LOVE TO HEAR FROM YOU</span><h1 class="page-title">A question, an idea,<br>or a place to share?</h1><p class="page-intro">Send our demo team a note. Messages are saved for the site administrator to review.</p>
-        <aside class="contact-note"><strong>Planning a trip?</strong><p>Availability, reservations, and payments are demonstrations only. Please contact travel providers directly for real-world arrangements.</p></aside>
+      <div class="contact-intro">
+        <span class="eyebrow section-eyebrow">WE'D LOVE TO HEAR FROM YOU</span>
+        <h1 class="page-title">A question, an idea,<br>or a place to share?</h1>
+        <p class="page-intro">Send our demo team a note. Messages are saved for the site administrator to review.</p>
+        <aside class="contact-note">
+          <strong>Planning a trip?</strong>
+          <p>Availability, reservations, and payments are demonstrations only. Please contact travel providers directly for real-world arrangements.</p>
+        </aside>
       </div>
-      <form class="contact-form form-panel" action="/contact" method="post">
-        {{NOTICE}}
+      <form class="contact-form form-panel" id="contact-form">
+        <div id="contact-notice"></div>
         <label class="form-label" for="contact-name">Your name</label>
         <input class="form-input" id="contact-name" name="name" minlength="2" maxlength="100" autocomplete="name" required>
         <label class="form-label" for="contact-email">Email address</label>
@@ -30,13 +43,19 @@
         <input class="form-input" id="contact-subject" name="subject" minlength="3" maxlength="150" required>
         <label class="form-label" for="contact-message">Your message</label>
         <textarea class="form-input" id="contact-message" name="message" minlength="10" maxlength="3000" rows="6" required></textarea>
-        <button class="button button-dark form-submit" type="submit">Send your message <span aria-hidden="true">â†—</span></button>
+        <button class="button button-dark form-submit" type="submit">Send your message <span aria-hidden="true">↗</span></button>
       </form>
     </main>
-    <footer class="site-footer"><a class="brand footer-brand" href="/"><span class="brand-mark">ST</span><span class="brand-name">Smart Tourist Guide <span>System</span></span></a><nav class="footer-nav" aria-label="Footer navigation"><a href="/about">About</a><a href="/contact">Contact</a></nav><p>Messages are reviewed by the site administrator.</p><span>Â© Smart Tourist Guide System Â· Created by Shruti Tayade &amp; Priyanka Suryawanshi</span></footer>
-      <script src="/config.js"></script>
+    <footer class="site-footer">
+      <a class="brand footer-brand" href="/">
+        <span class="brand-mark">ST</span>
+        <span class="brand-name">Smart Tourist Guide <span>System</span></span>
+      </a>
+      <nav class="footer-nav" aria-label="Footer navigation"><a href="/about">About</a><a href="/contact">Contact</a></nav>
+      <p>Messages are reviewed by the site administrator.</p>
+      <span>© Smart Tourist Guide System · Created by Shruti Tayade &amp; Priyanka Suryawanshi</span>
+    </footer>
+    <script src="/config.js"></script>
     <script src="/app.js" defer></script>
   </body>
 </html>
-
-

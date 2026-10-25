@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
@@ -20,7 +20,9 @@
         <a href="/about">About</a>
         <a href="/contact">Contact</a>
       </nav>
-      <div class="header-actions">{{HEADER_ACTIONS}}</div>
+      <div class="header-actions">
+        <a class="button button-dark" href="/account">Sign in</a>
+      </div>
     </header>
     <main>
       <section class="hero">
@@ -30,9 +32,9 @@
           <span class="eyebrow hero-eyebrow"><span class="eyebrow-dot"></span> YOUR NEXT CHAPTER STARTS HERE</span>
           <h1>Find your<br>somewhere.</h1>
           <p>Less scrolling, more seeing. Discover places that feel like you.</p>
-          <a class="button button-light hero-cta" href="#destinations">Find your escape <span aria-hidden="true">â†—</span></a>
+          <a class="button button-light hero-cta" href="#destinations">Find your escape <span aria-hidden="true">↗</span></a>
         </div>
-        <div class="hero-caption"><span class="caption-line"></span><span>Somewhere on the coast Â· Somewhere in your dreams</span></div>
+        <div class="hero-caption"><span class="caption-line"></span><span>Somewhere on the coast · Somewhere in your dreams</span></div>
         <div class="hero-index"><span>01</span> <span class="index-divider"></span> 05</div>
       </section>
       <section class="intro section-wrap" id="how-it-works">
@@ -42,7 +44,7 @@
         </div>
         <div class="intro-copy">
           <p>That place you've been saving for later? Let's make it real. Find your destination, discover the best local stays and spots, and bring the whole trip together in one place.</p>
-          <a class="underlined-link" href="#destinations">Get a little lost <span aria-hidden="true">â†—</span></a>
+          <a class="underlined-link" href="#destinations">Get a little lost <span aria-hidden="true">↗</span></a>
         </div>
       </section>
       <section class="destinations-section" id="destinations">
@@ -56,49 +58,56 @@
           </div>
           <form class="search-form" action="/" method="get">
             <label class="search-field">
-              <span class="search-icon" aria-hidden="true">âŒ•</span>
+              <span class="search-icon" aria-hidden="true">⌕</span>
               <span class="visually-hidden">Search destinations</span>
-              <input name="q" type="search" value="{{SEARCH_QUERY}}" placeholder="Try â€œmountainsâ€, â€œMaharashtraâ€â€¦">
+              <input name="q" type="search" value="" placeholder="Try “mountains”, “Maharashtra”…">
             </label>
             <label class="filter-field">
               <span class="filter-label">STATE / LOCATION</span>
-              <select name="state">{{STATE_OPTIONS}}</select>
+              <select name="state">
+                <option value="">All States</option>
+              </select>
             </label>
             <label class="filter-field">
               <span class="filter-label">CATEGORY</span>
               <select name="category">
-                {{CATEGORY_OPTIONS}}
+                <option value="">Every category</option>
               </select>
             </label>
             <label class="filter-field fee-filter">
-              <span class="filter-label">MAX ENTRY FEE <strong>â‚¹{{MAX_FEE_LABEL}}</strong></span>
-              <input name="maxFee" type="range" min="0" max="2000" step="100" value="{{MAX_FEE}}" aria-label="Maximum entry fee in rupees">
+              <span class="filter-label">MAX ENTRY FEE <strong id="fee-display">₹2,000+</strong></span>
+              <input name="maxFee" id="maxFee" type="range" min="0" max="2000" step="100" value="2000" aria-label="Maximum entry fee in rupees">
             </label>
             <label class="filter-field">
               <span class="filter-label">SORT BY</span>
-              <select name="sort">{{SORT_OPTIONS}}</select>
+              <select name="sort">
+                <option value="popularity">Popularity</option>
+                <option value="rating">Tourist rating</option>
+                <option value="fee">Entry fee</option>
+              </select>
             </label>
-            <button class="button button-dark search-button" type="submit">Find a place <span aria-hidden="true">â†—</span></button>
+            <button class="button button-dark search-button" type="submit">Find a place <span aria-hidden="true">↗</span></button>
           </form>
           <nav class="category-pills" aria-label="Explore destination categories">
-            {{CATEGORY_PILLS}}
+            <a class="category-pill is-active" href="/#destinations" data-category="">Everything</a>
           </nav>
-          {{NOTICE}}
-          <div class="results-meta"><p>{{RESULTS_COUNT}}</p><a class="text-button clear-search" href="/">Clear filters</a></div>
-          <div class="destination-grid">{{DESTINATION_CARDS}}</div>
-          {{EMPTY_STATE}}
+          <div class="results-meta"><p>Loading places to explore...</p><a class="text-button clear-search" href="/">Clear filters</a></div>
+          <div class="destination-grid"></div>
         </div>
       </section>
       <section class="closing-note">
-        <span class="closing-spark" aria-hidden="true">âœ³</span>
+        <span class="closing-spark" aria-hidden="true">✻</span>
         <p>Go on. The world is waiting.</p>
-        <a class="underlined-link" href="#destinations">Let's find your somewhere <span aria-hidden="true">â†—</span></a>
+        <a class="underlined-link" href="#destinations">Let's find your somewhere <span aria-hidden="true">↗</span></a>
       </section>
     </main>
-    <footer class="site-footer"><a class="brand footer-brand" href="/"><span class="brand-mark">ST</span><span class="brand-name">Smart Tourist Guide <span>System</span></span></a><nav class="footer-nav" aria-label="Footer navigation"><a href="/about">About</a><a href="/contact">Contact</a></nav><p>Made for the places that stay with you.</p><span>Â© Smart Tourist Guide System Â· Created by Shruti Tayade &amp; Priyanka Suryawanshi</span></footer>
-      <script src="/config.js"></script>
+    <footer class="site-footer">
+      <a class="brand footer-brand" href="/"><span class="brand-mark">ST</span><span class="brand-name">Smart Tourist Guide <span>System</span></span></a>
+      <nav class="footer-nav" aria-label="Footer navigation"><a href="/about">About</a><a href="/contact">Contact</a></nav>
+      <p>Made for the places that stay with you.</p>
+      <span>© Smart Tourist Guide System · Created by Shruti Tayade &amp; Priyanka Suryawanshi</span>
+    </footer>
+    <script src="/config.js"></script>
     <script src="/app.js" defer></script>
   </body>
 </html>
-
-
