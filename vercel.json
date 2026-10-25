@@ -10,7 +10,7 @@
     { "source": "/destination", "destination": "/destination.html" },
     { "source": "/cart", "destination": "/cart.html" },
     { "source": "/bookings", "destination": "/bookings.html" },
-    { "source": "/trips", "destination": "/bookings.html" },
+    { "source": "/trips", "destination": "/trips.html" },
     { "source": "/profile", "destination": "/profile.html" },
     { "source": "/payment", "destination": "/payment.html" },
     { "source": "/receipt", "destination": "/receipt.html" },
