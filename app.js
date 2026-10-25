@@ -1573,7 +1573,7 @@ async function renderAdminDashboard(user) {
   ` : "";
 
   // Messages Section
-  const messagesSection = user.role === "system_administrator" ? `
+  const messagesSection = ["administrator", "system_administrator"].includes(user.role) ? `
     <section class="dashboard-section" id="messages">
       <h2>Contact Messages (${messages.length})</h2>
       <div class="data-table-wrap">
@@ -1586,7 +1586,11 @@ async function renderAdminDashboard(user) {
                 <td><strong>${escapeHtml(m.name)}</strong><br><small>${escapeHtml(m.email)}</small></td>
                 <td>${escapeHtml(m.subject)}</td>
                 <td>${escapeHtml(m.message)}</td>
-                <td><span class="receipt-status">${escapeHtml(m.status)}</span></td>
+                <td>
+                  <span class="status-pill status-${m.status === "reviewed" ? "confirmed" : "pending"}">
+                    ${escapeHtml((m.status || "new").toUpperCase())}
+                  </span>
+                </td>
                 <td>
                   <button class="button button-dark toggle-msg-status-btn" data-msg-id="${m.id}" data-status="${m.status === "new" ? "reviewed" : "new"}" style="padding: 4px 8px; font-size: 9px;">
                     Mark ${m.status === "new" ? "Reviewed" : "New"}
