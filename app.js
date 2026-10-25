@@ -877,6 +877,604 @@ function setupContactForm() {
   });
 }
 
+function setupAdminLoginForm() {
+  const form = document.querySelector("#admin-login-form");
+  if (!form) return;
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const notice = document.querySelector("#admin-notice");
+    const email = document.querySelector("#admin-email")?.value;
+    const password = document.querySelector("#admin-password")?.value;
+    try {
+      await api("/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password }),
+      });
+      window.location.href = "/admin.html";
+    } catch (err) {
+      if (notice) notice.innerHTML = `<p class="page-notice" role="alert">${escapeHtml(err.message)}</p>`;
+    }
+  });
+}
+
+// ----------------------------------------------------
+// 10. ADMIN DASHBOARD
+// ----------------------------------------------------
+async function renderAdminDashboard(user) {
+  const container = document.querySelector("#admin-dashboard-container");
+  if (!container) return;
+
+  if (!user || !["administrator", "system_administrator", "service_provider", "hotel_manager"].includes(user.role)) {
+    container.innerHTML = `
+      <section class="empty-state">
+        <span aria-hidden="true">🔒</span>
+        <h2>Administrator access required</h2>
+        <p>Please sign in with an authorized administrator account to access this dashboard.</p>
+        <a class="button button-dark" href="/admin-login.html">Sign in to dashboard ↗</a>
+      </section>
+    `;
+    return;
+  }
+
+  const roleLabels = {
+    tourist: "Tourist",
+    administrator: "Administrator",
+    service_provider: "Service Provider",
+    system_administrator: "System Administrator",
+    hotel_manager: "Hotel Manager",
+  };
+
+  const roleBadge = document.querySelector("#admin-role");
+  if (roleBadge) {
+    roleBadge.textContent = (roleLabels[user.role] || user.role).toUpperCase();
+  }
+
+  // Load metrics & data in parallel
+  const [overviewRes, destsRes, hotelsRes, placesRes, restsRes, bookingsRes, paymentsRes, reviewsRes, usersRes, msgsRes] = await Promise.allSettled([
+    api("/management/overview"),
+    api("/management/entities/destinations"),
+    api("/management/entities/hotels"),
+    api("/management/entities/places"),
+    api("/management/entities/restaurants"),
+    api("/management/bookings"),
+    api("/management/payments"),
+    api("/management/reviews"),
+    api("/management/users"),
+    api("/management/contact-messages"),
+  ]);
+
+  const overview = overviewRes.status === "fulfilled" ? overviewRes.value.metrics || {} : {};
+  const destinations = destsRes.status === "fulfilled" ? destsRes.value.items || [] : [];
+  const hotels = hotelsRes.status === "fulfilled" ? hotelsRes.value.items || [] : [];
+  const places = placesRes.status === "fulfilled" ? placesRes.value.items || [] : [];
+  const restaurants = restsRes.status === "fulfilled" ? restsRes.value.items || [] : [];
+  const bookings = bookingsRes.status === "fulfilled" ? bookingsRes.value.bookings || [] : [];
+  const payments = paymentsRes.status === "fulfilled" ? paymentsRes.value.payments || [] : [];
+  const reviews = reviewsRes.status === "fulfilled" ? reviewsRes.value.reviews || [] : [];
+  const users = usersRes.status === "fulfilled" ? usersRes.value.users || [] : [];
+  const messages = msgsRes.status === "fulfilled" ? msgsRes.value.messages || [] : [];
+
+  // Metrics HTML
+  const metricsHtml = `
+    <section class="metrics-grid">
+      <div class="metric-card"><span>TOURISTS</span><strong>${overview.tourists ?? users.filter((u) => u.role === "tourist").length}</strong></div>
+      <div class="metric-card"><span>DESTINATIONS</span><strong>${overview.destinations ?? destinations.length}</strong></div>
+      <div class="metric-card"><span>HOTELS & STAYS</span><strong>${overview.hotels ?? hotels.length}</strong></div>
+      <div class="metric-card"><span>ATTRACTIONS</span><strong>${overview.places ?? places.length}</strong></div>
+      <div class="metric-card"><span>RESTAURANTS</span><strong>${overview.restaurants ?? restaurants.length}</strong></div>
+      <div class="metric-card"><span>TOTAL BOOKINGS</span><strong>${overview.bookings ?? bookings.length}</strong></div>
+      <div class="metric-card"><span>CONFIRMED BOOKINGS</span><strong>${overview.confirmedBookings ?? bookings.filter((b) => b.status === "confirmed").length}</strong></div>
+      <div class="metric-card"><span>RECORDED REVENUE</span><strong>${formatCurrency(overview.totalRevenue ?? payments.filter((p) => p.status === "success").reduce((s, p) => s + Number(p.amount || 0), 0))}</strong></div>
+    </section>
+  `;
+
+  // Nav HTML
+  const navHtml = `
+    <nav class="dashboard-nav">
+      <a href="#destinations">Destinations (${destinations.length})</a>
+      <a href="#hotels">Hotels (${hotels.length})</a>
+      <a href="#places">Places (${places.length})</a>
+      <a href="#restaurants">Restaurants (${restaurants.length})</a>
+      <a href="#bookings">Bookings (${bookings.length})</a>
+      <a href="#payments">Payments (${payments.length})</a>
+      <a href="#reviews">Reviews (${reviews.length})</a>
+      ${user.role === "system_administrator" ? `<a href="#users">Accounts (${users.length})</a><a href="#messages">Messages (${messages.length})</a>` : ""}
+    </nav>
+  `;
+
+  // Destinations Section
+  const destinationsSection = `
+    <section class="dashboard-section" id="destinations">
+      <h2>Manage Destinations</h2>
+      <details class="management-entry">
+        <summary>+ Add New Destination</summary>
+        <form class="management-form" id="create-destination-form">
+          <label class="form-label">Name</label><input class="form-input" name="name" required placeholder="e.g. Manali">
+          <label class="form-label">Location</label><input class="form-input" name="location" required placeholder="e.g. Himachal Pradesh, India">
+          <label class="form-label">State</label><input class="form-input" name="state" required placeholder="e.g. Himachal Pradesh">
+          <label class="form-label">Category</label>
+          <select class="form-input" name="category" required>
+            <option value="mountains">Hill Station</option>
+            <option value="beach">Beaches & Coastal</option>
+            <option value="heritage">Heritage & Culture</option>
+            <option value="nature">Nature & Wildlife</option>
+            <option value="spiritual">Spiritual</option>
+          </select>
+          <label class="form-label">Description</label><textarea class="form-input" name="description" required></textarea>
+          <label class="form-label">Search tags</label><input class="form-input" name="tags" placeholder="e.g. snow, mountains, trekking">
+          <label class="form-label">Highlights</label><textarea class="form-input" name="highlights" required placeholder="Key attractions"></textarea>
+          <label class="form-label">Heritage notes</label><textarea class="form-input" name="heritageNotes" required placeholder="Historical or cultural background"></textarea>
+          <label class="form-label">Entry fee (₹)</label><input class="form-input" name="entryFee" type="number" step="0.01" min="0" value="0">
+          <label class="form-label">Image URL</label><input class="form-input" name="imageUrl" type="url" required placeholder="https://images.unsplash.com/...">
+          <button class="button button-dark" type="submit">Create destination ↗</button>
+        </form>
+      </details>
+      <div class="data-table-wrap" style="margin-top: 15px;">
+        <table class="data-table">
+          <thead><tr><th>ID</th><th>Name</th><th>Location / State</th><th>Category</th><th>Fee</th><th>Rating</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${destinations.map((d) => `
+              <tr>
+                <td>#${d.id}</td>
+                <td><strong>${escapeHtml(d.name)}</strong></td>
+                <td>${escapeHtml(d.state || d.location)}</td>
+                <td>${escapeHtml(CATEGORY_LABELS[d.category] || d.category)}</td>
+                <td>${Number(d.entryFee || d.entry_fee) > 0 ? formatCurrency(d.entryFee || d.entry_fee) : "Free"}</td>
+                <td>★ ${Number(d.rating || 0).toFixed(1)}</td>
+                <td>
+                  <button class="button danger-button delete-entity-btn" data-resource="destinations" data-id="${d.id}" style="padding: 4px 8px; font-size: 10px;">Delete</button>
+                </td>
+              </tr>
+            `).join("") || '<tr><td colspan="7">No destinations found.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  `;
+
+  // Hotels Section
+  const hotelsSection = `
+    <section class="dashboard-section" id="hotels">
+      <h2>Manage Hotels & Stays</h2>
+      <details class="management-entry">
+        <summary>+ Add New Hotel</summary>
+        <form class="management-form" id="create-hotel-form">
+          <label class="form-label">Destination ID</label><input class="form-input" name="destinationId" type="number" required placeholder="1">
+          <label class="form-label">Hotel Name</label><input class="form-input" name="name" required placeholder="e.g. Grand View Resort">
+          <label class="form-label">Address</label><input class="form-input" name="address" required placeholder="e.g. Mall Road">
+          <label class="form-label">Price Per Room / Night (₹)</label><input class="form-input" name="pricePerNight" type="number" step="0.01" required value="2500">
+          <label class="form-label">Available Rooms</label><input class="form-input" name="availableRooms" type="number" required value="10">
+          <label class="form-label">Amenities</label><textarea class="form-input" name="amenities" required placeholder="Free Wi-Fi, Breakfast included, Mountain view"></textarea>
+          <button class="button button-dark" type="submit">Add hotel ↗</button>
+        </form>
+      </details>
+      <div class="data-table-wrap" style="margin-top: 15px;">
+        <table class="data-table">
+          <thead><tr><th>ID</th><th>Hotel Name</th><th>Address</th><th>Price / Night</th><th>Rooms</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${hotels.map((h) => `
+              <tr>
+                <td>#${h.id}</td>
+                <td><strong>${escapeHtml(h.name)}</strong></td>
+                <td>${escapeHtml(h.address || "")}</td>
+                <td>${formatCurrency(h.pricePerNight || h.price_per_night)}</td>
+                <td>${h.availableRooms || h.available_rooms || 0}</td>
+                <td>
+                  <button class="button danger-button delete-entity-btn" data-resource="hotels" data-id="${h.id}" style="padding: 4px 8px; font-size: 10px;">Delete</button>
+                </td>
+              </tr>
+            `).join("") || '<tr><td colspan="6">No hotels recorded.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  `;
+
+  // Places Section
+  const placesSection = `
+    <section class="dashboard-section" id="places">
+      <h2>Manage Attractions & Places</h2>
+      <details class="management-entry">
+        <summary>+ Add New Attraction</summary>
+        <form class="management-form" id="create-place-form">
+          <label class="form-label">Destination ID</label><input class="form-input" name="destinationId" type="number" required placeholder="1">
+          <label class="form-label">Place Name</label><input class="form-input" name="name" required placeholder="e.g. Sunset Point">
+          <label class="form-label">Type</label><input class="form-input" name="type" required placeholder="e.g. Scenic Viewpoint / Fort">
+          <label class="form-label">Opening Timings</label><input class="form-input" name="timings" required placeholder="e.g. 6:00 AM – 6:30 PM">
+          <label class="form-label">Entry Fee (₹)</label><input class="form-input" name="entryFee" type="number" step="0.01" value="0">
+          <label class="form-label">Historical Notes</label><textarea class="form-input" name="historicalNotes" required></textarea>
+          <button class="button button-dark" type="submit">Add attraction ↗</button>
+        </form>
+      </details>
+      <div class="data-table-wrap" style="margin-top: 15px;">
+        <table class="data-table">
+          <thead><tr><th>ID</th><th>Attraction Name</th><th>Type</th><th>Timings</th><th>Entry Fee</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${places.map((p) => `
+              <tr>
+                <td>#${p.id}</td>
+                <td><strong>${escapeHtml(p.name)}</strong></td>
+                <td>${escapeHtml(p.type || "")}</td>
+                <td>${escapeHtml(p.timings || "")}</td>
+                <td>${Number(p.entryFee || p.entry_fee) > 0 ? formatCurrency(p.entryFee || p.entry_fee) : "Free"}</td>
+                <td>
+                  <button class="button danger-button delete-entity-btn" data-resource="places" data-id="${p.id}" style="padding: 4px 8px; font-size: 10px;">Delete</button>
+                </td>
+              </tr>
+            `).join("") || '<tr><td colspan="6">No attractions recorded.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  `;
+
+  // Restaurants Section
+  const restaurantsSection = `
+    <section class="dashboard-section" id="restaurants">
+      <h2>Manage Dining & Restaurants</h2>
+      <details class="management-entry">
+        <summary>+ Add New Restaurant</summary>
+        <form class="management-form" id="create-restaurant-form">
+          <label class="form-label">Destination ID</label><input class="form-input" name="destinationId" type="number" required placeholder="1">
+          <label class="form-label">Restaurant Name</label><input class="form-input" name="name" required placeholder="e.g. Hilltop Bistro">
+          <label class="form-label">Address</label><input class="form-input" name="address" required placeholder="e.g. Central Market">
+          <label class="form-label">Cuisine</label><input class="form-input" name="cuisine" required placeholder="e.g. North Indian, Coastal">
+          <label class="form-label">Average Cost For Two (₹)</label><input class="form-input" name="averageCost" type="number" step="0.01" value="800">
+          <label class="form-label">Operating Hours</label><input class="form-input" name="operatingHours" value="11:00 AM – 11:00 PM">
+          <button class="button button-dark" type="submit">Add restaurant ↗</button>
+        </form>
+      </details>
+      <div class="data-table-wrap" style="margin-top: 15px;">
+        <table class="data-table">
+          <thead><tr><th>ID</th><th>Name</th><th>Cuisine</th><th>Average Cost</th><th>Hours</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${restaurants.map((r) => `
+              <tr>
+                <td>#${r.id}</td>
+                <td><strong>${escapeHtml(r.name)}</strong></td>
+                <td>${escapeHtml(r.cuisine || "")}</td>
+                <td>${formatCurrency(r.averageCost || r.average_cost)}</td>
+                <td>${escapeHtml(r.operatingHours || r.operating_hours || "")}</td>
+                <td>
+                  <button class="button danger-button delete-entity-btn" data-resource="restaurants" data-id="${r.id}" style="padding: 4px 8px; font-size: 10px;">Delete</button>
+                </td>
+              </tr>
+            `).join("") || '<tr><td colspan="6">No restaurants recorded.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  `;
+
+  // Bookings Section
+  const bookingsSection = `
+    <section class="dashboard-section" id="bookings">
+      <h2>Bookings & Reservations (${bookings.length})</h2>
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Booking ID</th><th>Traveler</th><th>Destination · Service</th><th>Dates</th><th>Total</th><th>Status</th><th>Update Status</th></tr></thead>
+          <tbody>
+            ${bookings.map((b) => `
+              <tr>
+                <td>BID-#${b.id}</td>
+                <td><strong>${escapeHtml(b.touristName || b.tourist_name || "Traveler")}</strong><br><small>${escapeHtml(b.touristEmail || "")}</small></td>
+                <td>${escapeHtml(b.destinationName || b.destination_name)} · ${escapeHtml(b.serviceName || b.service_name)}</td>
+                <td>${escapeHtml(b.bookingDate || b.booking_date)}${b.checkOut ? ` to ${escapeHtml(b.checkOut)}` : ""}</td>
+                <td><strong>${formatCurrency(b.totalAmount || b.total_amount)}</strong></td>
+                <td><span class="receipt-status">${escapeHtml(b.status)}</span></td>
+                <td>
+                  <select class="form-input booking-status-select" data-booking-id="${b.id}" style="min-height: 30px; display: inline-block; width: auto; font-size: 10px;">
+                    <option value="pending"${b.status === "pending" ? " selected" : ""}>pending</option>
+                    <option value="confirmed"${b.status === "confirmed" ? " selected" : ""}>confirmed</option>
+                    <option value="completed"${b.status === "completed" ? " selected" : ""}>completed</option>
+                    <option value="cancelled"${b.status === "cancelled" ? " selected" : ""}>cancelled</option>
+                  </select>
+                  <button class="button button-dark save-booking-status-btn" data-booking-id="${b.id}" style="min-height: 30px; padding: 0 8px; font-size: 10px;">Save</button>
+                </td>
+              </tr>
+            `).join("") || '<tr><td colspan="7">No customer bookings found.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  `;
+
+  // Payments Section
+  const paymentsSection = `
+    <section class="dashboard-section" id="payments">
+      <h2>Payments & Transactions (${payments.length})</h2>
+      <p class="demo-warning">Simulated transaction records. Refund action updates booking and payment records in the database.</p>
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead><tr><th>ID</th><th>Traveler</th><th>Destination · Service</th><th>Amount</th><th>Method</th><th>Transaction ID</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>
+            ${payments.map((p) => `
+              <tr>
+                <td>#${p.id}</td>
+                <td>${escapeHtml(p.touristName || p.tourist_name || "")}</td>
+                <td>${escapeHtml(p.destinationName || p.destination_name || "")} · ${escapeHtml(p.serviceName || p.service_name || "")}</td>
+                <td><strong>${formatCurrency(p.amount)}</strong></td>
+                <td>${escapeHtml(p.paymentMode || p.payment_mode || "UPI")}</td>
+                <td><code>${escapeHtml(p.transactionId || p.transaction_id || "")}</code></td>
+                <td><span class="${p.status === "success" ? "receipt-status" : "cart-unavailable"}">${escapeHtml(p.status)}</span></td>
+                <td>
+                  ${p.status === "success" ? `<button class="text-button cancel-booking refund-payment-btn" data-payment-id="${p.id}">Record Refund</button>` : `<small>Processed</small>`}
+                </td>
+              </tr>
+            `).join("") || '<tr><td colspan="8">No payments recorded.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  `;
+
+  // Reviews Section
+  const reviewsSection = `
+    <section class="dashboard-section" id="reviews">
+      <h2>Reviews Moderation (${reviews.length})</h2>
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Rating</th><th>Destination</th><th>Traveler</th><th>Comment</th><th>Action</th></tr></thead>
+          <tbody>
+            ${reviews.map((r) => `
+              <tr>
+                <td>★ ${Number(r.rating).toFixed(1)}</td>
+                <td>${escapeHtml(r.destinationName || r.destination_name || "")}</td>
+                <td>${escapeHtml(r.touristName || r.tourist_name || "Traveler")}</td>
+                <td>${escapeHtml(r.comment || "")}</td>
+                <td>
+                  <button class="button danger-button delete-review-btn" data-review-id="${r.id}" style="padding: 4px 8px; font-size: 10px;">Remove</button>
+                </td>
+              </tr>
+            `).join("") || '<tr><td colspan="5">No reviews to moderate.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  `;
+
+  // Users Section (system_administrator only)
+  const usersSection = user.role === "system_administrator" ? `
+    <section class="dashboard-section" id="users">
+      <h2>Accounts & Roles (${users.length})</h2>
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+            ${users.map((u) => `
+              <tr>
+                <td>#${u.id}</td>
+                <td><strong>${escapeHtml(u.name)}</strong></td>
+                <td>${escapeHtml(u.email)}</td>
+                <td>
+                  <select class="form-input user-role-select" data-user-id="${u.id}" style="min-height: 28px; width: auto; font-size: 10px;">
+                    ${Object.entries(roleLabels).map(([rVal, rLbl]) => `<option value="${rVal}"${u.role === rVal ? " selected" : ""}>${rLbl}</option>`).join("")}
+                  </select>
+                  <button class="button button-dark save-role-btn" data-user-id="${u.id}" style="min-height: 28px; padding: 0 8px; font-size: 9px;">Save Role</button>
+                </td>
+                <td><strong>${u.isActive || u.is_active ? "Active" : "Suspended"}</strong></td>
+                <td>
+                  <button class="button ${u.isActive || u.is_active ? "danger-button" : "button-dark"} toggle-user-status-btn" data-user-id="${u.id}" data-active="${u.isActive || u.is_active ? 1 : 0}" style="padding: 4px 8px; font-size: 9px;">
+                    ${u.isActive || u.is_active ? "Suspend" : "Activate"}
+                  </button>
+                </td>
+              </tr>
+            `).join("") || '<tr><td colspan="6">No accounts found.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  ` : "";
+
+  // Messages Section
+  const messagesSection = user.role === "system_administrator" ? `
+    <section class="dashboard-section" id="messages">
+      <h2>Contact Messages (${messages.length})</h2>
+      <div class="data-table-wrap">
+        <table class="data-table">
+          <thead><tr><th>Date</th><th>Sender</th><th>Subject</th><th>Message</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody>
+            ${messages.map((m) => `
+              <tr>
+                <td><small>${new Date(m.createdAt || m.created_at).toLocaleDateString()}</small></td>
+                <td><strong>${escapeHtml(m.name)}</strong><br><small>${escapeHtml(m.email)}</small></td>
+                <td>${escapeHtml(m.subject)}</td>
+                <td>${escapeHtml(m.message)}</td>
+                <td><span class="receipt-status">${escapeHtml(m.status)}</span></td>
+                <td>
+                  <button class="button button-dark toggle-msg-status-btn" data-msg-id="${m.id}" data-status="${m.status === "new" ? "reviewed" : "new"}" style="padding: 4px 8px; font-size: 9px;">
+                    Mark ${m.status === "new" ? "Reviewed" : "New"}
+                  </button>
+                </td>
+              </tr>
+            `).join("") || '<tr><td colspan="6">No contact messages received.</td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </section>
+  ` : "";
+
+  container.innerHTML = `
+    ${metricsHtml}
+    ${navHtml}
+    ${destinationsSection}
+    ${hotelsSection}
+    ${placesSection}
+    ${restaurantsSection}
+    ${bookingsSection}
+    ${paymentsSection}
+    ${reviewsSection}
+    ${usersSection}
+    ${messagesSection}
+  `;
+
+  // Hook event handlers
+  // 1. Delete entity buttons
+  container.querySelectorAll(".delete-entity-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      if (!confirm(`Are you sure you want to delete this ${btn.dataset.resource.slice(0, -1)}?`)) return;
+      try {
+        await api(`/management/entities/${btn.dataset.resource}/${btn.dataset.id}/delete`, { method: "POST" });
+        alert("Listing removed successfully.");
+        renderAdminDashboard(user);
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    });
+  });
+
+  // 2. Add destination form
+  document.querySelector("#create-destination-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const payload = Object.fromEntries(new FormData(e.target));
+    try {
+      await api("/management/entities/destinations", { method: "POST", body: JSON.stringify(payload) });
+      alert("Destination created successfully!");
+      renderAdminDashboard(user);
+    } catch (err) {
+      alert("Error creating destination: " + err.message);
+    }
+  });
+
+  // 3. Add hotel form
+  document.querySelector("#create-hotel-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const payload = Object.fromEntries(new FormData(e.target));
+    try {
+      await api("/management/entities/hotels", { method: "POST", body: JSON.stringify(payload) });
+      alert("Hotel added successfully!");
+      renderAdminDashboard(user);
+    } catch (err) {
+      alert("Error adding hotel: " + err.message);
+    }
+  });
+
+  // 4. Add place form
+  document.querySelector("#create-place-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const payload = Object.fromEntries(new FormData(e.target));
+    try {
+      await api("/management/entities/places", { method: "POST", body: JSON.stringify(payload) });
+      alert("Attraction added successfully!");
+      renderAdminDashboard(user);
+    } catch (err) {
+      alert("Error adding attraction: " + err.message);
+    }
+  });
+
+  // 5. Add restaurant form
+  document.querySelector("#create-restaurant-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const payload = Object.fromEntries(new FormData(e.target));
+    try {
+      await api("/management/entities/restaurants", { method: "POST", body: JSON.stringify(payload) });
+      alert("Restaurant added successfully!");
+      renderAdminDashboard(user);
+    } catch (err) {
+      alert("Error adding restaurant: " + err.message);
+    }
+  });
+
+  // 6. Update booking status
+  container.querySelectorAll(".save-booking-status-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const select = container.querySelector(`.booking-status-select[data-booking-id="${btn.dataset.bookingId}"]`);
+      const status = select?.value;
+      try {
+        await api(`/management/bookings/${btn.dataset.bookingId}`, {
+          method: "PATCH",
+          body: JSON.stringify({ status }),
+        });
+        alert(`Booking #${btn.dataset.bookingId} status updated to ${status}.`);
+        renderAdminDashboard(user);
+      } catch (err) {
+        alert("Error updating status: " + err.message);
+      }
+    });
+  });
+
+  // 7. Refund payment
+  container.querySelectorAll(".refund-payment-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      if (!confirm("Confirm demo refund for this payment?")) return;
+      try {
+        await api(`/management/payments/${btn.dataset.paymentId}/refund`, { method: "POST" });
+        alert("Demo refund processed and logged.");
+        renderAdminDashboard(user);
+      } catch (err) {
+        alert("Error processing refund: " + err.message);
+      }
+    });
+  });
+
+  // 8. Delete review
+  container.querySelectorAll(".delete-review-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      if (!confirm("Are you sure you want to remove this review?")) return;
+      try {
+        await api(`/management/reviews/${btn.dataset.reviewId}/delete`, { method: "POST" });
+        alert("Review removed.");
+        renderAdminDashboard(user);
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    });
+  });
+
+  // 9. Save user role
+  container.querySelectorAll(".save-role-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const select = container.querySelector(`.user-role-select[data-user-id="${btn.dataset.userId}"]`);
+      const role = select?.value;
+      try {
+        await api(`/management/users/${btn.dataset.userId}/role`, {
+          method: "PATCH",
+          body: JSON.stringify({ role }),
+        });
+        alert(`Role updated to ${role}.`);
+        renderAdminDashboard(user);
+      } catch (err) {
+        alert("Error updating role: " + err.message);
+      }
+    });
+  });
+
+  // 10. Toggle user status (suspend/activate)
+  container.querySelectorAll(".toggle-user-status-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const currentActive = btn.dataset.active === "1";
+      const newActive = !currentActive;
+      try {
+        await api(`/management/users/${btn.dataset.userId}/status`, {
+          method: "PATCH",
+          body: JSON.stringify({ isActive: newActive }),
+        });
+        alert(`User account ${newActive ? "activated" : "suspended"}.`);
+        renderAdminDashboard(user);
+      } catch (err) {
+        alert("Error updating account status: " + err.message);
+      }
+    });
+  });
+
+  // 11. Toggle message status
+  container.querySelectorAll(".toggle-msg-status-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const status = btn.dataset.status;
+      try {
+        await api(`/management/contact-messages/${btn.dataset.msgId}/status`, {
+          method: "POST",
+          body: JSON.stringify({ status }),
+        });
+        alert(`Message marked as ${status}.`);
+        renderAdminDashboard(user);
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    });
+  });
+}
+
 // ----------------------------------------------------
 // INITIALIZATION
 // ----------------------------------------------------
@@ -899,4 +1497,6 @@ function setupContactForm() {
   renderProfile(sessionUser);
   renderAccount();
   setupContactForm();
+  setupAdminLoginForm();
+  renderAdminDashboard(sessionUser);
 })();

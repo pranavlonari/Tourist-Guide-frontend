@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#fbf9f4">
-    <title>Dashboard · Smart Tourist Guide System</title>
+    <title>System Dashboard · Smart Tourist Guide System</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
@@ -12,30 +12,37 @@
   </head>
   <body>
     <header class="site-header">
-      <a class="brand" href="/" aria-label="Smart Tourist Guide System home"><span class="brand-mark">ST</span><span class="brand-name">Smart Tourist Guide <span>System</span></span></a>
+      <a class="brand" href="/" aria-label="Smart Tourist Guide System home">
+        <span class="brand-mark">ST</span>
+        <span class="brand-name">Smart Tourist Guide <span>System</span></span>
+      </a>
       <nav class="main-nav" aria-label="Main navigation">
-        <a href="/">Explore</a><a href="/about">About</a><a href="/contact">Contact</a><a href="/admin">Dashboard</a>
+        <a href="/">Explore</a>
+        <a href="/about">About</a>
+        <a href="/contact">Contact</a>
+        <a href="/admin.html">Dashboard</a>
       </nav>
       <div class="header-actions"><a class="button button-dark" href="/account">Sign in</a></div>
     </header>
     <main class="section-wrap dashboard-page">
-      <span class="eyebrow section-eyebrow" id="admin-role">MANAGEMENT DASHBOARD</span>
+      <span class="eyebrow section-eyebrow" id="admin-role">STAFF PORTAL</span>
       <h1 class="page-title" id="admin-title">System Dashboard</h1>
-      <p class="page-intro" id="admin-desc">Manage destinations, listings, bookings, and traveler operations.</p>
+      <p class="page-intro" id="admin-desc">Manage destinations, listings, bookings, payments, and traveler operations.</p>
       <div id="admin-notice"></div>
-      <section class="metrics-grid" id="admin-metrics">
-        <div class="metric-card"><span>DESTINATIONS</span><strong>8</strong></div>
-        <div class="metric-card"><span>BOOKINGS</span><strong>Active</strong></div>
-        <div class="metric-card"><span>SYSTEM STATUS</span><strong>Online</strong></div>
-      </section>
-      <div id="admin-content">
-        <p class="page-intro">For administrative database operations, access the admin API or verify your administrator role.</p>
+      <div id="admin-dashboard-container">
+        <p class="page-intro">Loading system dashboard and live database records...</p>
       </div>
     </main>
     <footer class="site-footer">
-      <a class="brand footer-brand" href="/"><span class="brand-mark">ST</span><span class="brand-name">Smart Tourist Guide <span>System</span></span></a>
-      <nav class="footer-nav" aria-label="Footer navigation"><a href="/about">About</a><a href="/contact">Contact</a></nav>
-      <p>Management actions are recorded for review.</p>
+      <a class="brand footer-brand" href="/">
+        <span class="brand-mark">ST</span>
+        <span class="brand-name">Smart Tourist Guide <span>System</span></span>
+      </a>
+      <nav class="footer-nav" aria-label="Footer navigation">
+        <a href="/about">About</a>
+        <a href="/contact">Contact</a>
+      </nav>
+      <p>Management actions are recorded in system audit logs.</p>
       <span>© Smart Tourist Guide System · Created by Shruti Tayade &amp; Priyanka Suryawanshi</span>
     </footer>
     <script src="/config.js"></script>
