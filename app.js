@@ -432,17 +432,19 @@ async function renderDestination(user) {
     // Review form handling
     document.querySelector("#review-submission-form")?.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const rating = Number(document.querySelector("#review-rating").value);
-      const comment = document.querySelector("#review-comment").value;
+      const rating = Number(document.querySelector("#review-rating")?.value || 5);
+      const comment = document.querySelector("#review-comment")?.value || "";
       const notice = document.querySelector("#destination-notice");
       try {
         await api(`/destinations/${encodeURIComponent(d.id)}/reviews`, {
           method: "POST",
-          body: JSON.stringify({ rating, comment }),
+          body: JSON.stringify({ destinationId: d.id, rating, comment }),
         });
-        if (notice) notice.innerHTML = `<p class="page-notice">Thank you for sharing your story! Your review has been submitted.</p>`;
+        if (notice) notice.innerHTML = `<p class="page-notice">Thank you for sharing your story! Your review has been submitted and posted.</p>`;
+        const commentInput = document.querySelector("#review-comment");
+        if (commentInput) commentInput.value = "";
       } catch (err) {
-        if (notice) notice.innerHTML = `<p class="page-notice" role="alert">Please sign in to submit a verified review.</p>`;
+        if (notice) notice.innerHTML = `<p class="page-notice" role="alert">${escapeHtml(err.message || "Please sign in to submit a review.")}</p>`;
       }
     });
 
@@ -1136,13 +1138,39 @@ function renderAccount() {
 function setupContactForm() {
   const form = document.querySelector("#contact-form");
   if (!form) return;
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const notice = document.querySelector("#contact-notice");
-    if (notice) {
-      notice.innerHTML = `<p class="page-notice">Thank you for getting in touch! Your message has been received.</p>`;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const name = document.querySelector("#contact-name")?.value;
+    const email = document.querySelector("#contact-email")?.value;
+    const subject = document.querySelector("#contact-subject")?.value;
+    const message = document.querySelector("#contact-message")?.value;
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = "Sending message...";
     }
-    form.reset();
+
+    try {
+      await api("/contact", {
+        method: "POST",
+        body: JSON.stringify({ name, email, subject, message }),
+      });
+      if (notice) {
+        notice.innerHTML = `<p class="page-notice">Thank you for getting in touch! Your message has been received by the site administrator.</p>`;
+      }
+      form.reset();
+    } catch (err) {
+      if (notice) {
+        notice.innerHTML = `<p class="page-notice" role="alert">Unable to send message: ${escapeHtml(err.message)}</p>`;
+      }
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `Send your message <span aria-hidden="true">↗</span>`;
+      }
+    }
   });
 }
 
@@ -1465,9 +1493,18 @@ async function renderAdminDashboard(user) {
                 <td><strong>${formatCurrency(p.amount)}</strong></td>
                 <td>${escapeHtml(p.paymentMode || p.payment_mode || "UPI")}</td>
                 <td><code>${escapeHtml(p.transactionId || p.transaction_id || "")}</code></td>
-                <td><span class="${p.status === "success" ? "receipt-status" : "cart-unavailable"}">${escapeHtml(p.status)}</span></td>
                 <td>
-                  ${p.status === "success" ? `<button class="text-button cancel-booking refund-payment-btn" data-payment-id="${p.id}">Record Refund</button>` : `<small>Processed</small>`}
+                  <span class="status-pill status-${p.status === "success" ? "confirmed" : p.status === "cash_due" ? "pending" : "cancelled"}">
+                    ${escapeHtml(p.status === "success" ? "PAID / SUCCESS" : p.status === "cash_due" ? "CASH DUE" : p.status.toUpperCase())}
+                  </span>
+                </td>
+                <td>
+                  ${p.status === "cash_due"
+                    ? `<button class="button button-dark collect-cash-btn" data-payment-id="${p.id}" style="padding: 3px 8px; font-size: 9px;">Mark Paid</button>`
+                    : p.status === "success"
+                      ? `<button class="text-button cancel-booking refund-payment-btn" data-payment-id="${p.id}">Record Refund</button>`
+                      : `<small>Processed</small>`
+                  }
                 </td>
               </tr>
             `).join("") || '<tr><td colspan="8">No payments recorded.</td></tr>'}
@@ -1672,6 +1709,19 @@ async function renderAdminDashboard(user) {
         renderAdminDashboard(user);
       } catch (err) {
         alert("Error processing refund: " + err.message);
+      }
+    });
+  });
+
+  // 7b. Collect cash payment
+  container.querySelectorAll(".collect-cash-btn").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      try {
+        await api(`/management/payments/${btn.dataset.paymentId}/collect`, { method: "POST" });
+        alert("Cash payment marked as collected and paid.");
+        renderAdminDashboard(user);
+      } catch (err) {
+        alert("Error updating payment: " + err.message);
       }
     });
   });
